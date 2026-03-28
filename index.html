@@ -3,402 +3,338 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel da Loja - Teste Simples</title>
+  <title>Painel Loja</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --bg: #000000;
-      --fg: #ffffff;
-      --card: #111111;
-      --line: #2a2a2a;
-      --muted: #bcbcbc;
-    }
-
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #050505;
-      color: var(--fg);
-    }
-
-    .hidden { display: none !important; }
-    .app { min-height: 100vh; }
-
-    .topbar {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--line);
-      background: #0b0b0b;
-      position: sticky;
-      top: 0;
-      z-index: 5;
-    }
-
-    .topbar .left,
-    .topbar .right {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .badge {
-      border: 1px solid var(--line);
-      background: var(--card);
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    button, textarea { font: inherit; }
-
-    textarea {
-      width: 100%;
       background: #000;
       color: #fff;
-      border: 1px solid #3a3a3a;
-      border-radius: 16px;
-      padding: 14px;
-      min-height: 300px;
-      resize: vertical;
-      font-size: 28px;
-      line-height: 1.2;
     }
-
+    .hidden { display: none !important; }
+    .screen {
+      min-height: 100vh;
+      width: 100%;
+    }
+    .control {
+      background: #111;
+      padding: 20px;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #bbb;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      border-radius: 16px;
+      border: 1px solid #444;
+      background: #000;
+      color: #fff;
+      padding: 16px;
+      font-size: 28px;
+      resize: vertical;
+      outline: none;
+    }
+    .buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
     button {
       border: 0;
-      border-radius: 16px;
-      padding: 14px 18px;
-      cursor: pointer;
+      border-radius: 14px;
+      padding: 16px 20px;
+      font-size: 18px;
       font-weight: 700;
+      cursor: pointer;
     }
-
-    .btn-white {
+    .primary {
       background: #fff;
       color: #000;
     }
-
-    .btn-dark {
+    .secondary {
       background: #222;
       color: #fff;
-      border: 1px solid #3a3a3a;
+      border: 1px solid #444;
     }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 18px;
-      padding: 18px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 18px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.25);
-    }
-
-    .card h2 {
-      margin: 0 0 14px 0;
-      font-size: 22px;
-    }
-
-    .label {
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .actions {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .muted {
-      color: var(--muted);
-      font-size: 14px;
+    .status {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #181818;
+      border: 1px solid #333;
+      color: #ddd;
       line-height: 1.5;
     }
-
-    .small {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.6;
+    .topbar {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      padding: 14px;
+      background: #0a0a0a;
+      border-bottom: 1px solid #222;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
-
     .display {
-      min-height: 100vh;
       background: #000;
-      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 30px;
-    }
-
-    .display-wrap {
-      width: 100%;
-      max-width: 1800px;
+      padding: 40px;
       text-align: center;
     }
-
-    .display-label {
-      color: #8e8e8e;
-      text-transform: uppercase;
-      letter-spacing: .28em;
-      font-size: 13px;
-      margin-bottom: 24px;
-    }
-
     .display-text {
+      width: 100%;
+      max-width: 1600px;
       font-weight: 700;
-      line-height: .94;
+      line-height: 0.95;
       word-break: break-word;
       white-space: pre-wrap;
     }
-
-    .alarm-flash {
-      animation: flash .28s 5;
-    }
-
-    @keyframes flash {
-      0% { background: #000; }
-      50% { background: #250000; }
-      100% { background: #000; }
-    }
-
-    .notice {
-      margin-top: 12px;
-      padding: 12px 14px;
-      background: #181818;
-      border: 1px solid #333;
-      border-radius: 16px;
-      color: #ddd;
-      line-height: 1.5;
+    .smallnote {
       font-size: 14px;
-    }
-
-    @media (max-width: 900px) {
-      .grid { grid-template-columns: 1fr; }
-      .actions { grid-template-columns: 1fr; }
-      .topbar { position: static; }
+      color: #aaa;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <div id="controlApp" class="app">
-    <div class="topbar">
-      <div class="left">
-        <strong>Teste do comunicador</strong>
-        <span class="badge">modo controle</span>
-      </div>
-      <div class="right">
-        <button id="openDisplayBtn" class="btn-dark">Abrir painel nesta aba</button>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="card">
-        <h2>Controle pelo celular</h2>
-        <label class="label" for="messageInput">Mensagem para o monitor</label>
-        <textarea id="messageInput" placeholder="Digite aqui..."></textarea>
-        <p class="muted">A letra começa grande e vai diminuindo conforme o texto aumenta.</p>
-
-        <div class="actions">
-          <button id="alarmBtn" class="btn-white">Alarme</button>
-          <button id="voiceBtn" class="btn-dark">Segure para falar</button>
-          <button id="clearBtn" class="btn-dark">Limpar</button>
-        </div>
-
-        <div class="notice">
-          Nesta versão de teste, o botão de voz é apenas visual. O texto e o alarme já funcionam.
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Teste simples</h2>
-        <div class="small">
-          Nesta versão não existe mais código de sala.<br><br>
-          O controle e o painel ficam ligados de forma fixa, porque a ideia é usar em uma única loja.
-        </div>
-
-        <div style="margin-top:16px">
-          <div class="label">Como testar agora</div>
-          <div class="small">
-            1. Abra este mesmo arquivo em duas abas do navegador.<br>
-            2. Em uma aba, clique em <strong>Abrir painel nesta aba</strong>.<br>
-            3. Na outra aba, deixe no modo controle.<br>
-            4. Digite no controle e veja aparecer no painel.<br>
-            5. Clique em <strong>Alarme</strong> para tocar.
-          </div>
-        </div>
-
-        <div style="margin-top:16px">
-          <div class="label">Limite desta versão</div>
-          <div class="small">
-            Este teste funciona no mesmo navegador e no mesmo computador. Para funcionar entre celular e computador diferentes, a próxima etapa é colocar online.
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="topbar">
+    <button class="secondary" id="btnControl">Abrir controle nesta aba</button>
+    <button class="secondary" id="btnDisplay">Abrir painel nesta aba</button>
   </div>
 
-  <div id="displayApp" class="display hidden">
-    <div class="display-wrap">
-      <div class="display-label">painel da loja</div>
-      <div id="displayText" class="display-text">Digite no controle para aparecer aqui</div>
+  <section class="screen control" id="controlScreen">
+    <div class="wrap">
+      <div class="title">Controle da loja</div>
+      <div class="subtitle">
+        Digite no celular e a mensagem aparece no painel do computador em tempo real.
+      </div>
+
+      <textarea id="messageInput" placeholder="Digite aqui..."></textarea>
+
+      <div class="buttons">
+        <button class="primary" id="alarmButton">Alarme</button>
+        <button class="secondary" id="clearButton">Limpar</button>
+        <button class="secondary" id="voiceButton">Segure para falar (em breve)</button>
+      </div>
+
+      <div class="status" id="statusBox">Conectando...</div>
+      <div class="smallnote">Projeto fixo para uma única loja, sem código de sala.</div>
     </div>
-  </div>
+  </section>
+
+  <section class="screen display hidden" id="displayScreen">
+    <div class="display-text" id="displayText">Digite no celular para aparecer aqui</div>
+  </section>
 
   <script>
-    const KEY_TEXT = 'painel-loja-html:text';
-    const KEY_ALARM = 'painel-loja-html:alarm';
-    const CHANNEL_NAME = 'painel-loja-html:channel';
+    const SUPABASE_URL = "https://cunljsxsijvjuqetkwry.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_S_qPXf4Q-IWtOyiqA4d1KQ_wleiP_48";
+    const CHANNEL_NAME = "painel-loja-unica";
+    const MESSAGE_ROW_ID = 1;
 
-    const params = new URLSearchParams(location.search);
-    let mode = params.get('mode') === 'display' ? 'display' : 'control';
+    const controlScreen = document.getElementById("controlScreen");
+    const displayScreen = document.getElementById("displayScreen");
+    const displayText = document.getElementById("displayText");
+    const messageInput = document.getElementById("messageInput");
+    const alarmButton = document.getElementById("alarmButton");
+    const clearButton = document.getElementById("clearButton");
+    const voiceButton = document.getElementById("voiceButton");
+    const statusBox = document.getElementById("statusBox");
+    const btnControl = document.getElementById("btnControl");
+    const btnDisplay = document.getElementById("btnDisplay");
 
-    const controlApp = document.getElementById('controlApp');
-    const displayApp = document.getElementById('displayApp');
-    const displayText = document.getElementById('displayText');
-    const messageInput = document.getElementById('messageInput');
-    const voiceBtn = document.getElementById('voiceBtn');
-
-    const channel = new BroadcastChannel(CHANNEL_NAME);
-    channel.onmessage = (event) => {
-      const msg = event.data || {};
-      if (msg.type === 'text') updateDisplay(msg.value || '');
-      if (msg.type === 'alarm') playAlarm();
-      if (msg.type === 'clear') updateDisplay('');
-    };
-
-    function getSavedText() {
-      return localStorage.getItem(KEY_TEXT) || '';
-    }
-
-    function setSavedText(value) {
-      localStorage.setItem(KEY_TEXT, value);
-    }
-
-    function updateDisplay(text) {
-      const clean = (text || '').trim();
-      displayText.textContent = clean || 'Digite no controle para aparecer aqui';
-      displayText.style.fontSize = estimateFontSize(clean.length) + 'px';
-    }
-
-    function estimateFontSize(len) {
-      if (len <= 12) return 150;
-      if (len <= 24) return 120;
-      if (len <= 40) return 94;
-      if (len <= 70) return 76;
-      if (len <= 110) return 58;
-      if (len <= 180) return 44;
-      return 34;
-    }
-
-    function renderMode() {
-      if (mode === 'display') {
-        controlApp.classList.add('hidden');
-        displayApp.classList.remove('hidden');
-        updateDisplay(getSavedText());
-      } else {
-        displayApp.classList.add('hidden');
-        controlApp.classList.remove('hidden');
-        messageInput.value = getSavedText();
-      }
-    }
+    const params = new URLSearchParams(window.location.search);
+    let mode = params.get("mode") === "display" ? "display" : "control";
 
     function setMode(nextMode) {
       mode = nextMode;
-      const url = new URL(location.href);
-      url.searchParams.set('mode', mode);
-      history.replaceState({}, '', url);
+      const url = new URL(window.location.href);
+      url.searchParams.set("mode", nextMode);
+      window.history.replaceState({}, "", url.toString());
       renderMode();
     }
 
-    function triggerAlarm() {
-      const tick = String(Date.now());
-      localStorage.setItem(KEY_ALARM, tick);
-      channel.postMessage({ type: 'alarm', value: tick });
-      if (mode === 'display') playAlarm();
+    btnControl.addEventListener("click", () => setMode("control"));
+    btnDisplay.addEventListener("click", () => setMode("display"));
+
+    function renderMode() {
+      controlScreen.classList.toggle("hidden", mode !== "control");
+      displayScreen.classList.toggle("hidden", mode !== "display");
+    }
+
+    function estimateFontSize(text) {
+      const len = (text || "").trim().length;
+      if (len <= 12) return 140;
+      if (len <= 24) return 112;
+      if (len <= 40) return 88;
+      if (len <= 70) return 72;
+      if (len <= 110) return 56;
+      if (len <= 180) return 42;
+      return 32;
+    }
+
+    function applyDisplayText(text) {
+      const content = (text || "").trim() ? text : "Digite no celular para aparecer aqui";
+      displayText.textContent = content;
+      displayText.style.fontSize = estimateFontSize(content) + "px";
+    }
+
+    function setStatus(text) {
+      statusBox.textContent = text;
     }
 
     function playAlarm() {
-      displayApp.classList.add('alarm-flash');
-      setTimeout(() => displayApp.classList.remove('alarm-flash'), 1500);
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        const ctx = new AudioContextClass();
+        const now = ctx.currentTime;
+        const master = ctx.createGain();
+        master.gain.value = 0.12;
+        master.connect(ctx.destination);
 
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass) return;
-      const ctx = new AudioContextClass();
-      const master = ctx.createGain();
-      master.gain.value = 0.12;
-      master.connect(ctx.destination);
-      const now = ctx.currentTime;
+        [0, 0.22, 0.44].forEach((offset, index) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = index % 2 === 0 ? "square" : "sine";
+          osc.frequency.value = index % 2 === 0 ? 880 : 660;
+          gain.gain.setValueAtTime(0.0001, now + offset);
+          gain.gain.exponentialRampToValueAtTime(0.9, now + offset + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.18);
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start(now + offset);
+          osc.stop(now + offset + 0.2);
+        });
 
-      [0, 0.22, 0.44].forEach((offset, index) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = index % 2 === 0 ? 'square' : 'sine';
-        osc.frequency.value = index % 2 === 0 ? 880 : 660;
-        gain.gain.setValueAtTime(0.0001, now + offset);
-        gain.gain.exponentialRampToValueAtTime(0.8, now + offset + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.18);
-        osc.connect(gain);
-        gain.connect(master);
-        osc.start(now + offset);
-        osc.stop(now + offset + 0.2);
-      });
-
-      setTimeout(() => {
-        ctx.close().catch(() => {});
-      }, 1200);
+        setTimeout(() => ctx.close().catch(() => {}), 1200);
+      } catch (e) {
+        console.error(e);
+      }
     }
 
-    messageInput.addEventListener('input', (e) => {
-      const value = e.target.value;
-      setSavedText(value);
-      channel.postMessage({ type: 'text', value });
-    });
-
-    document.getElementById('alarmBtn').addEventListener('click', triggerAlarm);
-
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      setSavedText('');
-      messageInput.value = '';
-      channel.postMessage({ type: 'clear' });
-      updateDisplay('');
-    });
-
-    document.getElementById('openDisplayBtn').addEventListener('click', () => {
-      setMode('display');
-    });
-
-    voiceBtn.addEventListener('mousedown', () => voiceBtn.textContent = 'Falando...');
-    voiceBtn.addEventListener('mouseup', () => voiceBtn.textContent = 'Segure para falar');
-    voiceBtn.addEventListener('mouseleave', () => voiceBtn.textContent = 'Segure para falar');
-    voiceBtn.addEventListener('touchstart', () => voiceBtn.textContent = 'Falando...');
-    voiceBtn.addEventListener('touchend', () => voiceBtn.textContent = 'Segure para falar');
-
-    window.addEventListener('storage', (e) => {
-      if (e.key === KEY_TEXT) {
-        updateDisplay(e.newValue || '');
-        if (mode === 'control') messageInput.value = e.newValue || '';
-      }
-      if (e.key === KEY_ALARM && mode === 'display') playAlarm();
-    });
-
     renderMode();
+    applyDisplayText("");
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function ensureTableAndRow() {
+      // This pure static version expects a public table already created.
+      // It still works for realtime broadcast without the table; the table is only for initial state restore.
+      try {
+        const { data } = await supabase
+          .from("painel_estado")
+          .select("mensagem")
+          .eq("id", MESSAGE_ROW_ID)
+          .maybeSingle();
+
+        if (data && typeof data.mensagem === "string") {
+          messageInput.value = data.mensagem;
+          applyDisplayText(data.mensagem);
+        }
+      } catch (err) {
+        console.warn("Tabela painel_estado ainda não encontrada. O realtime ainda pode funcionar para novas mensagens.", err);
+      }
+    }
+
+    async function saveMessage(text) {
+      try {
+        await supabase.from("painel_estado").upsert({ id: MESSAGE_ROW_ID, mensagem: text });
+      } catch (err) {
+        console.warn("Não foi possível salvar estado inicial na tabela painel_estado.", err);
+      }
+    }
+
+    let typingTimer;
+    messageInput.addEventListener("input", () => {
+      const text = messageInput.value;
+      applyDisplayText(text);
+
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => saveMessage(text), 250);
+
+      channel.send({
+        type: "broadcast",
+        event: "text-update",
+        payload: { text }
+      });
+    });
+
+    alarmButton.addEventListener("click", () => {
+      channel.send({
+        type: "broadcast",
+        event: "alarm",
+        payload: { at: Date.now() }
+      });
+    });
+
+    clearButton.addEventListener("click", () => {
+      messageInput.value = "";
+      applyDisplayText("");
+      saveMessage("");
+      channel.send({
+        type: "broadcast",
+        event: "text-update",
+        payload: { text: "" }
+      });
+    });
+
+    voiceButton.addEventListener("mousedown", () => {
+      voiceButton.textContent = "Falando... (em breve)";
+    });
+    voiceButton.addEventListener("mouseup", () => {
+      voiceButton.textContent = "Segure para falar (em breve)";
+    });
+    voiceButton.addEventListener("touchstart", () => {
+      voiceButton.textContent = "Falando... (em breve)";
+    });
+    voiceButton.addEventListener("touchend", () => {
+      voiceButton.textContent = "Segure para falar (em breve)";
+    });
+
+    const channel = supabase.channel(CHANNEL_NAME, {
+      config: { broadcast: { self: true } }
+    });
+
+    channel
+      .on("broadcast", { event: "text-update" }, ({ payload }) => {
+        const text = payload?.text || "";
+        if (mode === "display") {
+          applyDisplayText(text);
+        }
+        if (mode === "control" && document.activeElement !== messageInput) {
+          messageInput.value = text;
+        }
+      })
+      .on("broadcast", { event: "alarm" }, () => {
+        if (mode === "display") playAlarm();
+      })
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          setStatus("Conectado. Pode digitar no celular.");
+          ensureTableAndRow();
+        } else {
+          setStatus("Status da conexão: " + status);
+        }
+      });
   </script>
 </body>
 </html>
