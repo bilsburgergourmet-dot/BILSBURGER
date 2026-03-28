@@ -101,7 +101,7 @@
       <div class="name-buttons">
         <button class="name-btn" data-name="Nicolly" type="button">Nicolly</button>
         <button class="name-btn" data-name="Tibério" type="button">Tibério</button>
-        <button class="name-btn" data-name="LarissaX" type="button">LarissaX</button>
+        <button class="name-btn" data-name="LarrisaY" type="button">LarrisaY</button>
         <button class="danger" id="alertButton" type="button">ALERTA SONORO</button>
       </div>
 
@@ -149,40 +149,29 @@
     const soundStatus = document.getElementById("soundStatus");
     const nameButtons = Array.from(document.querySelectorAll(".name-btn"));
 
-    function getModeFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("mode") === "display" ? "display" : "control";
-    }
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode") === "display" ? "display" : "control";
 
-    let mode = getModeFromUrl();
+    let supabase = null;
     let lastTextCommandId = null;
     let lastSoundCommandId = null;
     let lastShownMessage = "";
     let typingTimer = null;
-    let controlStarted = false;
-    let displayStarted = false;
-    let supabase = null;
-    let controlIntervalsStarted = false;
-    let displayIntervalsStarted = false;
+
+    function goToMode(nextMode) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("mode", nextMode);
+      window.location.href = url.toString();
+    }
+
+    btnControl.addEventListener("click", () => goToMode("control"));
+    btnDisplay.addEventListener("click", () => goToMode("display"));
 
     function renderMode() {
       controlScreen.classList.toggle("hidden", mode !== "control");
       displayScreen.classList.toggle("hidden", mode !== "display");
       document.title = mode === "display" ? "Painel Loja - Painel" : "Painel Loja - Controle";
     }
-
-    function setMode(nextMode) {
-      mode = nextMode;
-      const url = new URL(window.location.href);
-      url.searchParams.set("mode", nextMode);
-      window.history.replaceState({}, "", url.toString());
-      renderMode();
-      if (mode === "control") startControlLoops();
-      if (mode === "display") startDisplayLoops();
-    }
-
-    btnControl.addEventListener("click", () => setMode("control"));
-    btnDisplay.addEventListener("click", () => setMode("display"));
 
     function estimateFontSize(text) {
       const len = (text || "").trim().length;
@@ -294,7 +283,7 @@
       if (!supabase || mode !== "display") return;
       const { data, error } = await supabase
         .from("painel_comandos")
-        .select("id, tipo, conteudo, status")
+        .select("id, tipo, conteudo")
         .eq("status", "pendente")
         .order("id", { ascending: true })
         .limit(25);
@@ -410,37 +399,6 @@
       });
     }
 
-    function startDisplayLoops() {
-      if (displayStarted) return;
-      displayStarted = true;
-      refreshCurrentMessage();
-      processPendingCommands();
-      heartbeatPanel();
-      if (!displayIntervalsStarted) {
-        displayIntervalsStarted = true;
-        setInterval(refreshCurrentMessage, 1000);
-        setInterval(processPendingCommands, DISPLAY_POLL_MS);
-        setInterval(heartbeatPanel, PANEL_HEARTBEAT_MS);
-      }
-    }
-
-    function startControlLoops() {
-      if (controlStarted) return;
-      controlStarted = true;
-      setConnection("Controle conectado.");
-      refreshCurrentMessage();
-      checkPanelLiveness();
-      if (!controlIntervalsStarted) {
-        controlIntervalsStarted = true;
-        setInterval(refreshCurrentMessage, 2000);
-        setInterval(checkPanelLiveness, CONTROL_POLL_MS);
-        setInterval(() => {
-          pollCommandStatus(lastTextCommandId, "texto");
-          pollCommandStatus(lastSoundCommandId, "som");
-        }, CONTROL_POLL_MS);
-      }
-    }
-
     function initSupabase() {
       if (!window.supabase) {
         setConnection("Erro ao carregar Supabase.");
@@ -455,13 +413,34 @@
       }
     }
 
+    function startControl() {
+      setConnection("Controle conectado.");
+      refreshCurrentMessage();
+      checkPanelLiveness();
+      setInterval(refreshCurrentMessage, 2000);
+      setInterval(checkPanelLiveness, CONTROL_POLL_MS);
+      setInterval(() => {
+        pollCommandStatus(lastTextCommandId, "texto");
+        pollCommandStatus(lastSoundCommandId, "som");
+      }, CONTROL_POLL_MS);
+    }
+
+    function startDisplay() {
+      refreshCurrentMessage();
+      processPendingCommands();
+      heartbeatPanel();
+      setInterval(refreshCurrentMessage, 1000);
+      setInterval(processPendingCommands, DISPLAY_POLL_MS);
+      setInterval(heartbeatPanel, PANEL_HEARTBEAT_MS);
+    }
+
     renderMode();
     applyDisplayText("");
     attachControlEvents();
     initSupabase();
 
-    if (mode === "display") startDisplayLoops();
-    if (mode === "control") startControlLoops();
+    if (mode === "control") startControl();
+    if (mode === "display") startDisplay();
   </script>
 </body>
 </html>
