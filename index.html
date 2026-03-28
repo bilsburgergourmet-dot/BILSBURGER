@@ -7,35 +7,45 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #000;
-      color: #fff;
-    }
+    html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background: #000; color: #fff; }
     .hidden { display: none !important; }
-    .screen {
-      min-height: 100vh;
-      width: 100%;
+
+    .topbar {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      padding: 14px;
+      background: #0a0a0a;
+      border-bottom: 1px solid #222;
+      position: sticky;
+      top: 0;
+      z-index: 20;
     }
+
+    .screen { min-height: calc(100vh - 61px); width: 100%; }
+
     .control {
       background: #111;
       padding: 20px;
     }
+
     .wrap {
       max-width: 1100px;
       margin: 0 auto;
     }
+
     .title {
       font-size: 28px;
       font-weight: 700;
       margin-bottom: 8px;
     }
+
     .subtitle {
       color: #bbb;
       margin-bottom: 20px;
       line-height: 1.5;
     }
+
     textarea {
       width: 100%;
       min-height: 260px;
@@ -48,12 +58,14 @@
       resize: vertical;
       outline: none;
     }
+
     .buttons {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
       margin-top: 16px;
     }
+
     button {
       border: 0;
       border-radius: 14px;
@@ -62,15 +74,18 @@
       font-weight: 700;
       cursor: pointer;
     }
+
     .primary {
       background: #fff;
       color: #000;
     }
+
     .secondary {
       background: #222;
       color: #fff;
       border: 1px solid #444;
     }
+
     .status {
       margin-top: 18px;
       padding: 14px 16px;
@@ -80,17 +95,13 @@
       color: #ddd;
       line-height: 1.5;
     }
-    .topbar {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      padding: 14px;
-      background: #0a0a0a;
-      border-bottom: 1px solid #222;
-      position: sticky;
-      top: 0;
-      z-index: 10;
+
+    .smallnote {
+      font-size: 14px;
+      color: #aaa;
+      margin-top: 10px;
     }
+
     .display {
       background: #000;
       display: flex;
@@ -99,25 +110,41 @@
       padding: 40px;
       text-align: center;
     }
-    .display-text {
+
+    .display-inner {
       width: 100%;
       max-width: 1600px;
+    }
+
+    .display-kicker {
+      font-size: 14px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 28px;
+    }
+
+    .display-text {
+      width: 100%;
       font-weight: 700;
-      line-height: 0.95;
+      line-height: 0.94;
       word-break: break-word;
       white-space: pre-wrap;
     }
-    .smallnote {
-      font-size: 14px;
-      color: #aaa;
-      margin-top: 10px;
+
+    @media (max-width: 768px) {
+      .title { font-size: 24px; }
+      textarea { font-size: 24px; min-height: 220px; }
+      button { width: 100%; }
+      .topbar { justify-content: stretch; flex-wrap: wrap; }
+      .topbar button { flex: 1 1 100%; }
     }
   </style>
 </head>
 <body>
   <div class="topbar">
-    <button class="secondary" id="btnControl">Abrir controle nesta aba</button>
-    <button class="secondary" id="btnDisplay">Abrir painel nesta aba</button>
+    <button class="secondary" id="btnControl" type="button">Abrir controle nesta aba</button>
+    <button class="secondary" id="btnDisplay" type="button">Abrir painel nesta aba</button>
   </div>
 
   <section class="screen control" id="controlScreen">
@@ -130,9 +157,9 @@
       <textarea id="messageInput" placeholder="Digite aqui..."></textarea>
 
       <div class="buttons">
-        <button class="primary" id="alarmButton">Alarme</button>
-        <button class="secondary" id="clearButton">Limpar</button>
-        <button class="secondary" id="voiceButton">Segure para falar (em breve)</button>
+        <button class="primary" id="alarmButton" type="button">Alarme</button>
+        <button class="secondary" id="clearButton" type="button">Limpar</button>
+        <button class="secondary" id="voiceButton" type="button">Segure para falar (em breve)</button>
       </div>
 
       <div class="status" id="statusBox">Conectando...</div>
@@ -141,14 +168,16 @@
   </section>
 
   <section class="screen display hidden" id="displayScreen">
-    <div class="display-text" id="displayText">Digite no celular para aparecer aqui</div>
+    <div class="display-inner">
+      <div class="display-kicker">Painel da loja</div>
+      <div class="display-text" id="displayText">Digite no celular para aparecer aqui</div>
+    </div>
   </section>
 
   <script>
     const SUPABASE_URL = "https://cunljsxsijvjuqetkwry.supabase.co";
     const SUPABASE_KEY = "sb_publishable_S_qPXf4Q-IWtOyiqA4d1KQ_wleiP_48";
     const CHANNEL_NAME = "painel-loja-unica";
-    const MESSAGE_ROW_ID = 1;
 
     const controlScreen = document.getElementById("controlScreen");
     const displayScreen = document.getElementById("displayScreen");
@@ -161,8 +190,12 @@
     const btnControl = document.getElementById("btnControl");
     const btnDisplay = document.getElementById("btnDisplay");
 
-    const params = new URLSearchParams(window.location.search);
-    let mode = params.get("mode") === "display" ? "display" : "control";
+    function getModeFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("mode") === "display" ? "display" : "control";
+    }
+
+    let mode = getModeFromUrl();
 
     function setMode(nextMode) {
       mode = nextMode;
@@ -172,12 +205,13 @@
       renderMode();
     }
 
-    btnControl.addEventListener("click", () => setMode("control"));
-    btnDisplay.addEventListener("click", () => setMode("display"));
+    btnControl.addEventListener("click", function () { setMode("control"); });
+    btnDisplay.addEventListener("click", function () { setMode("display"); });
 
     function renderMode() {
       controlScreen.classList.toggle("hidden", mode !== "control");
       displayScreen.classList.toggle("hidden", mode !== "display");
+      document.title = mode === "display" ? "Painel Loja - Painel" : "Painel Loja - Controle";
     }
 
     function estimateFontSize(text) {
@@ -192,7 +226,8 @@
     }
 
     function applyDisplayText(text) {
-      const content = (text || "").trim() ? text : "Digite no celular para aparecer aqui";
+      const original = (typeof text === "string") ? text : "";
+      const content = original.trim() ? original : "Digite no celular para aparecer aqui";
       displayText.textContent = content;
       displayText.style.fontSize = estimateFontSize(content) + "px";
     }
@@ -225,7 +260,9 @@
           osc.stop(now + offset + 0.2);
         });
 
-        setTimeout(() => ctx.close().catch(() => {}), 1200);
+        setTimeout(function () {
+          ctx.close().catch(function () {});
+        }, 1200);
       } catch (e) {
         console.error(e);
       }
@@ -234,107 +271,87 @@
     renderMode();
     applyDisplayText("");
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    if (!window.supabase) {
+      setStatus("Erro ao carregar Supabase.");
+      console.error("Supabase JS não carregou.");
+    } else {
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function ensureTableAndRow() {
-      // This pure static version expects a public table already created.
-      // It still works for realtime broadcast without the table; the table is only for initial state restore.
-      try {
-        const { data } = await supabase
-          .from("painel_estado")
-          .select("mensagem")
-          .eq("id", MESSAGE_ROW_ID)
-          .maybeSingle();
+      const channel = supabase.channel(CHANNEL_NAME, {
+        config: { broadcast: { self: true } }
+      });
 
-        if (data && typeof data.mensagem === "string") {
-          messageInput.value = data.mensagem;
-          applyDisplayText(data.mensagem);
-        }
-      } catch (err) {
-        console.warn("Tabela painel_estado ainda não encontrada. O realtime ainda pode funcionar para novas mensagens.", err);
+      let typingTimer = null;
+
+      messageInput.addEventListener("input", function () {
+        const text = messageInput.value;
+        applyDisplayText(text);
+
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(function () {
+          channel.send({
+            type: "broadcast",
+            event: "text-update",
+            payload: { text: text }
+          });
+        }, 60);
+      });
+
+      alarmButton.addEventListener("click", function () {
+        channel.send({
+          type: "broadcast",
+          event: "alarm",
+          payload: { at: Date.now() }
+        });
+      });
+
+      clearButton.addEventListener("click", function () {
+        messageInput.value = "";
+        applyDisplayText("");
+        channel.send({
+          type: "broadcast",
+          event: "text-update",
+          payload: { text: "" }
+        });
+      });
+
+      function startVoiceState() {
+        voiceButton.textContent = "Falando... (em breve)";
       }
-    }
 
-    async function saveMessage(text) {
-      try {
-        await supabase.from("painel_estado").upsert({ id: MESSAGE_ROW_ID, mensagem: text });
-      } catch (err) {
-        console.warn("Não foi possível salvar estado inicial na tabela painel_estado.", err);
+      function stopVoiceState() {
+        voiceButton.textContent = "Segure para falar (em breve)";
       }
+
+      voiceButton.addEventListener("mousedown", startVoiceState);
+      voiceButton.addEventListener("mouseup", stopVoiceState);
+      voiceButton.addEventListener("mouseleave", stopVoiceState);
+      voiceButton.addEventListener("touchstart", startVoiceState);
+      voiceButton.addEventListener("touchend", stopVoiceState);
+
+      channel
+        .on("broadcast", { event: "text-update" }, function ({ payload }) {
+          const text = payload && typeof payload.text === "string" ? payload.text : "";
+          if (mode === "display") {
+            applyDisplayText(text);
+          }
+          if (mode === "control" && document.activeElement !== messageInput) {
+            messageInput.value = text;
+          }
+        })
+        .on("broadcast", { event: "alarm" }, function () {
+          if (mode === "display") {
+            playAlarm();
+          }
+        })
+        .subscribe(function (status) {
+          if (status === "SUBSCRIBED") {
+            setStatus("Conectado. Pode digitar no celular.");
+          } else {
+            setStatus("Status da conexão: " + status);
+          }
+        });
     }
-
-    let typingTimer;
-    messageInput.addEventListener("input", () => {
-      const text = messageInput.value;
-      applyDisplayText(text);
-
-      clearTimeout(typingTimer);
-      typingTimer = setTimeout(() => saveMessage(text), 250);
-
-      channel.send({
-        type: "broadcast",
-        event: "text-update",
-        payload: { text }
-      });
-    });
-
-    alarmButton.addEventListener("click", () => {
-      channel.send({
-        type: "broadcast",
-        event: "alarm",
-        payload: { at: Date.now() }
-      });
-    });
-
-    clearButton.addEventListener("click", () => {
-      messageInput.value = "";
-      applyDisplayText("");
-      saveMessage("");
-      channel.send({
-        type: "broadcast",
-        event: "text-update",
-        payload: { text: "" }
-      });
-    });
-
-    voiceButton.addEventListener("mousedown", () => {
-      voiceButton.textContent = "Falando... (em breve)";
-    });
-    voiceButton.addEventListener("mouseup", () => {
-      voiceButton.textContent = "Segure para falar (em breve)";
-    });
-    voiceButton.addEventListener("touchstart", () => {
-      voiceButton.textContent = "Falando... (em breve)";
-    });
-    voiceButton.addEventListener("touchend", () => {
-      voiceButton.textContent = "Segure para falar (em breve)";
-    });
-
-    const channel = supabase.channel(CHANNEL_NAME, {
-      config: { broadcast: { self: true } }
-    });
-
-    channel
-      .on("broadcast", { event: "text-update" }, ({ payload }) => {
-        const text = payload?.text || "";
-        if (mode === "display") {
-          applyDisplayText(text);
-        }
-        if (mode === "control" && document.activeElement !== messageInput) {
-          messageInput.value = text;
-        }
-      })
-      .on("broadcast", { event: "alarm" }, () => {
-        if (mode === "display") playAlarm();
-      })
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          setStatus("Conectado. Pode digitar no celular.");
-          ensureTableAndRow();
-        } else {
-          setStatus("Status da conexão: " + status);
-        }
-      });
   </script>
 </body>
 </html>
