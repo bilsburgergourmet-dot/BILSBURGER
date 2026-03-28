@@ -46,9 +46,17 @@
       line-height: 1.5;
     }
 
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 18px;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
     textarea {
       width: 100%;
-      min-height: 220px;
+      min-height: 180px;
       border-radius: 16px;
       border: 1px solid #444;
       background: #000;
@@ -59,7 +67,12 @@
       outline: none;
     }
 
-    .buttons, .name-buttons {
+    .speech-box {
+      min-height: 110px;
+      font-size: 24px;
+    }
+
+    .buttons, .name-buttons, .speech-actions {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
@@ -73,11 +86,12 @@
       font-size: 18px;
       font-weight: 700;
       cursor: pointer;
+      transition: opacity 0.15s ease;
     }
 
-    .primary {
-      background: #fff;
-      color: #000;
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
     }
 
     .secondary {
@@ -89,6 +103,11 @@
     .danger {
       background: #ff3b30;
       color: #fff;
+    }
+
+    .primary {
+      background: #fff;
+      color: #000;
     }
 
     .name-btn {
@@ -121,6 +140,7 @@
       font-size: 14px;
       color: #aaa;
       margin-top: 10px;
+      line-height: 1.5;
     }
 
     .display {
@@ -162,7 +182,8 @@
 
     @media (max-width: 768px) {
       .title { font-size: 24px; }
-      textarea { font-size: 24px; min-height: 200px; }
+      textarea { font-size: 24px; min-height: 160px; }
+      .speech-box { font-size: 22px; min-height: 100px; }
       button { width: 100%; }
       .topbar { justify-content: stretch; flex-wrap: wrap; }
       .topbar button { flex: 1 1 100%; }
@@ -181,20 +202,29 @@
     <div class="wrap">
       <div class="title">Controle da loja</div>
       <div class="subtitle">
-        Digite no celular e a TV atualiza. Se a TV ficar sem internet, os comandos sonoros ficam na fila e executam quando ela reconectar.
+        Digite no celular e a TV atualiza. Sons e falas entram em fila e são executados um por vez no painel.
       </div>
 
-      <textarea id="messageInput" placeholder="Digite aqui..."></textarea>
+      <div class="section-title">Texto da tela</div>
+      <textarea id="messageInput" placeholder="Digite aqui o texto que aparece na TV..."></textarea>
 
       <div class="buttons">
-        <button class="secondary" id="clearButton" type="button">Limpar</button>
+        <button class="secondary" id="clearButton" type="button">Limpar texto da tela</button>
       </div>
 
+      <div class="section-title">Fala por voz</div>
+      <textarea class="speech-box" id="speechInput" placeholder="Digite aqui o texto que deve ser falado na TV..."></textarea>
+
+      <div class="speech-actions">
+        <button class="primary" id="sendSpeechButton" type="button">FALAR TEXTO DIGITADO</button>
+      </div>
+
+      <div class="section-title">Chamadas rápidas</div>
       <div class="name-buttons">
-        <button class="name-btn" data-name="Nicolly" type="button">Nicolly</button>
-        <button class="name-btn" data-name="Tibério" type="button">Tibério</button>
-        <button class="name-btn" data-name="LARRISAV" type="button">LARRISAV</button>
-        <button class="danger" id="alertButton" type="button">ALERTA SONORO</button>
+        <button class="name-btn action-btn" data-name="Nicolly" type="button">Nicolly</button>
+        <button class="name-btn action-btn" data-name="Tibério" type="button">Tibério</button>
+        <button class="name-btn action-btn" data-name="Larissa" type="button">Larissa</button>
+        <button class="danger action-btn" id="alertButton" type="button">ALERTA SONORO</button>
       </div>
 
       <div class="status-grid">
@@ -202,9 +232,10 @@
         <div class="status" id="panelStatus"><b>Painel</b>Aguardando confirmação da TV...</div>
         <div class="status" id="textStatus"><b>Último texto</b>Nenhum comando enviado ainda.</div>
         <div class="status" id="soundStatus"><b>Último som</b>Nenhum comando enviado ainda.</div>
+        <div class="status" id="queueStatus"><b>Fila pendente</b>Consultando...</div>
       </div>
 
-      <div class="smallnote">Projeto fixo para uma única loja, sem código de sala.</div>
+      <div class="smallnote">Projeto fixo para uma única loja, sem código de sala. Os botões são protegidos contra clique duplo acidental por um curto intervalo.</div>
     </div>
   </section>
 
@@ -223,21 +254,26 @@
     const PANEL_HEARTBEAT_MS = 4000;
     const CONTROL_POLL_MS = 1500;
     const DISPLAY_POLL_MS = 1000;
+    const CLICK_GUARD_MS = 700;
 
     const controlScreen = document.getElementById("controlScreen");
     const displayScreen = document.getElementById("displayScreen");
     const displayText = document.getElementById("displayText");
     const displayBadge = document.getElementById("displayBadge");
     const messageInput = document.getElementById("messageInput");
+    const speechInput = document.getElementById("speechInput");
     const clearButton = document.getElementById("clearButton");
     const alertButton = document.getElementById("alertButton");
+    const sendSpeechButton = document.getElementById("sendSpeechButton");
     const connectionStatus = document.getElementById("connectionStatus");
     const panelStatus = document.getElementById("panelStatus");
     const textStatus = document.getElementById("textStatus");
     const soundStatus = document.getElementById("soundStatus");
+    const queueStatus = document.getElementById("queueStatus");
     const btnControl = document.getElementById("btnControl");
     const btnDisplay = document.getElementById("btnDisplay");
     const nameButtons = Array.from(document.querySelectorAll(".name-btn"));
+    const actionButtons = Array.from(document.querySelectorAll(".action-btn")).concat([sendSpeechButton, clearButton]);
 
     function getModeFromUrl() {
       const params = new URLSearchParams(window.location.search);
@@ -251,6 +287,7 @@
     let lastShownMessage = "";
     let lastTextCommandId = null;
     let lastSoundCommandId = null;
+    let audioQueueRunning = false;
 
     function setMode(nextMode) {
       mode = nextMode;
@@ -267,6 +304,7 @@
         startControlIntervals();
         refreshCurrentMessage();
         checkPanelLiveness();
+        updatePendingQueueCount();
       }
     }
 
@@ -302,64 +340,99 @@
     function setPanel(text) { panelStatus.innerHTML = "<b>Painel</b>" + text; }
     function setTextStatus(text) { textStatus.innerHTML = "<b>Último texto</b>" + text; }
     function setSoundStatus(text) { soundStatus.innerHTML = "<b>Último som</b>" + text; }
+    function setQueueStatus(text) { queueStatus.innerHTML = "<b>Fila pendente</b>" + text; }
 
     function formatDateTime(iso) {
       if (!iso) return "-";
       try { return new Date(iso).toLocaleString("pt-BR"); } catch { return iso; }
     }
 
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function guardButton(button) {
+      button.disabled = true;
+      setTimeout(function () {
+        button.disabled = false;
+      }, CLICK_GUARD_MS);
+    }
+
     function playSiren() {
-      try {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) return;
-        const ctx = new AudioContextClass();
-        const now = ctx.currentTime;
-        const master = ctx.createGain();
-        master.gain.value = 0.22;
-        master.connect(ctx.destination);
+      return new Promise((resolve) => {
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) {
+            resolve();
+            return;
+          }
+          const ctx = new AudioContextClass();
+          const now = ctx.currentTime;
+          const master = ctx.createGain();
+          master.gain.value = 0.22;
+          master.connect(ctx.destination);
 
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sawtooth";
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sawtooth";
 
-        for (let i = 0; i < 8; i++) {
-          const start = now + i * 0.25;
-          osc.frequency.setValueAtTime(650, start);
-          osc.frequency.linearRampToValueAtTime(1350, start + 0.125);
-          osc.frequency.linearRampToValueAtTime(650, start + 0.25);
+          for (let i = 0; i < 8; i++) {
+            const start = now + i * 0.25;
+            osc.frequency.setValueAtTime(650, start);
+            osc.frequency.linearRampToValueAtTime(1350, start + 0.125);
+            osc.frequency.linearRampToValueAtTime(650, start + 0.25);
+          }
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime(0.95, now + 0.03);
+          gain.gain.setValueAtTime(0.95, now + 1.9);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.02);
+
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start(now);
+          osc.stop(now + 2.05);
+
+          setTimeout(function () {
+            ctx.close().catch(function () {});
+            resolve();
+          }, 2300);
+        } catch (e) {
+          console.error(e);
+          resolve();
         }
-
-        gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.exponentialRampToValueAtTime(0.95, now + 0.03);
-        gain.gain.setValueAtTime(0.95, now + 1.9);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.02);
-
-        osc.connect(gain);
-        gain.connect(master);
-        osc.start(now);
-        osc.stop(now + 2.05);
-
-        setTimeout(function () {
-          ctx.close().catch(function () {});
-        }, 2600);
-      } catch (e) {
-        console.error(e);
-      }
+      });
     }
 
     function speakText(text) {
-      if (!("speechSynthesis" in window)) return;
-      try {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "pt-BR";
-        utterance.rate = 0.95;
-        utterance.pitch = 1.0;
-        utterance.volume = 1.0;
-        window.speechSynthesis.speak(utterance);
-      } catch (e) {
-        console.error(e);
-      }
+      return new Promise((resolve) => {
+        if (!("speechSynthesis" in window)) {
+          resolve();
+          return;
+        }
+        try {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = "pt-BR";
+          utterance.rate = 0.95;
+          utterance.pitch = 1.0;
+          utterance.volume = 1.0;
+          let resolved = false;
+          const finish = function () {
+            if (!resolved) {
+              resolved = true;
+              resolve();
+            }
+          };
+          utterance.onend = finish;
+          utterance.onerror = finish;
+          window.speechSynthesis.speak(utterance);
+          setTimeout(finish, Math.max(2500, text.length * 85));
+        } catch (e) {
+          console.error(e);
+          resolve();
+        }
+      });
     }
 
     renderMode();
@@ -393,6 +466,29 @@
         }
       }
 
+      async function updatePendingQueueCount() {
+        if (mode !== "control") return;
+        try {
+          const { count, error } = await supabase
+            .from("painel_comandos")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "pendente");
+
+          if (error) {
+            setQueueStatus("Erro ao consultar fila.");
+            return;
+          }
+
+          const total = count || 0;
+          if (total === 0) setQueueStatus("Nenhum comando pendente.");
+          else if (total === 1) setQueueStatus("1 comando aguardando execução.");
+          else setQueueStatus(total + " comandos aguardando execução.");
+        } catch (e) {
+          console.error(e);
+          setQueueStatus("Erro ao consultar fila.");
+        }
+      }
+
       async function upsertPanelMessage(text) {
         return await supabase
           .from("painel_estado")
@@ -419,7 +515,7 @@
       }
 
       async function processPendingCommands() {
-        if (mode !== "display") return;
+        if (mode !== "display" || audioQueueRunning) return;
 
         try {
           const { data, error } = await supabase
@@ -435,17 +531,22 @@
           }
           if (!data || data.length === 0) return;
 
+          audioQueueRunning = true;
+
           for (const cmd of data) {
             await markCommand(cmd.id, "recebido");
 
             if (cmd.tipo === "texto") {
               applyDisplayText(cmd.conteudo || "");
-            } else if (cmd.tipo === "audio_nome") {
-              displayBadge.textContent = "Chamando: " + (cmd.conteudo || "");
-              speakText(cmd.conteudo || "");
+              await wait(120);
+            } else if (cmd.tipo === "audio_nome" || cmd.tipo === "audio_texto") {
+              displayBadge.textContent = cmd.tipo === "audio_nome" ? "Chamando: " + (cmd.conteudo || "") : "Falando mensagem...";
+              await speakText(cmd.conteudo || "");
+              await wait(250);
             } else if (cmd.tipo === "sirene") {
               displayBadge.textContent = "ALERTA SONORO";
-              playSiren();
+              await playSiren();
+              await wait(250);
             }
 
             await markCommand(cmd.id, "executado");
@@ -453,9 +554,11 @@
 
           setTimeout(function () {
             displayBadge.textContent = "";
-          }, 2500);
+          }, 800);
         } catch (e) {
           console.error(e);
+        } finally {
+          audioQueueRunning = false;
         }
       }
 
@@ -538,6 +641,7 @@
 
         lastTextCommandId = ins.data.id;
         setTextStatus("Texto enviado para a fila.");
+        updatePendingQueueCount();
       }
 
       async function handleSoundSend(tipo, conteudo, label) {
@@ -550,6 +654,7 @@
 
         lastSoundCommandId = ins.data.id;
         setSoundStatus(label + " enviado para a fila.");
+        updatePendingQueueCount();
       }
 
       messageInput.addEventListener("input", function () {
@@ -561,16 +666,30 @@
       });
 
       clearButton.addEventListener("click", async function () {
+        guardButton(clearButton);
         messageInput.value = "";
         await handleTextSend("");
       });
 
+      sendSpeechButton.addEventListener("click", async function () {
+        guardButton(sendSpeechButton);
+        const text = (speechInput.value || "").trim();
+        if (!text) {
+          setSoundStatus("Digite o texto que deve ser falado.");
+          return;
+        }
+        await handleSoundSend("audio_texto", text, "texto falado");
+        speechInput.value = "";
+      });
+
       alertButton.addEventListener("click", async function () {
+        guardButton(alertButton);
         await handleSoundSend("sirene", "ALERTA SONORO", "alerta sonoro");
       });
 
       nameButtons.forEach(function (btn) {
         btn.addEventListener("click", async function () {
+          guardButton(btn);
           const name = btn.getAttribute("data-name");
           await handleSoundSend("audio_nome", name, "chamada de " + name);
         });
@@ -580,8 +699,10 @@
         if (controlIntervalsStarted) return;
         controlIntervalsStarted = true;
         setConnection("Controle conectado.");
+        updatePendingQueueCount();
         setInterval(function () { refreshCurrentMessage(); }, 2000);
         setInterval(function () { checkPanelLiveness(); }, CONTROL_POLL_MS);
+        setInterval(function () { updatePendingQueueCount(); }, CONTROL_POLL_MS);
         setInterval(function () {
           pollCommandStatus(lastTextCommandId, "texto");
           pollCommandStatus(lastSoundCommandId, "som");
@@ -605,6 +726,7 @@
         startControlIntervals();
         refreshCurrentMessage();
         checkPanelLiveness();
+        updatePendingQueueCount();
       }
     }
   </script>
