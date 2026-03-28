@@ -43,7 +43,6 @@
       border: 0; border-radius: 14px; padding: 16px 20px;
       font-size: 18px; font-weight: 700; cursor: pointer;
     }
-    .primary { background: #fff; color: #000; }
     .secondary { background: #222; color: #fff; border: 1px solid #444; }
     .danger { background: #ff3b30; color: #fff; }
     .name-btn { min-width: 170px; background: #1d1d1d; color: #fff; border: 1px solid #444; }
@@ -102,7 +101,7 @@
       <div class="name-buttons">
         <button class="name-btn" data-name="Nicolly" type="button">Nicolly</button>
         <button class="name-btn" data-name="Tibério" type="button">Tibério</button>
-        <button class="name-btn" data-name="Larissa" type="button">Larissa</button>
+        <button class="name-btn" data-name="LarissaX" type="button">LarissaX</button>
         <button class="danger" id="alertButton" type="button">ALERTA SONORO</button>
       </div>
 
@@ -163,6 +162,8 @@
     let controlStarted = false;
     let displayStarted = false;
     let supabase = null;
+    let controlIntervalsStarted = false;
+    let displayIntervalsStarted = false;
 
     function renderMode() {
       controlScreen.classList.toggle("hidden", mode !== "control");
@@ -302,9 +303,7 @@
         displayBadge.textContent = "Erro ao buscar fila.";
         return;
       }
-      if (!data || data.length === 0) {
-        return;
-      }
+      if (!data || data.length === 0) return;
 
       for (const cmd of data) {
         await markCommand(cmd.id, "recebido");
@@ -411,20 +410,18 @@
       });
     }
 
-    function startControlLoops() {
-      if (controlStarted) return;
-      controlStarted = true;
-    }
-
     function startDisplayLoops() {
       if (displayStarted) return;
       displayStarted = true;
       refreshCurrentMessage();
       processPendingCommands();
       heartbeatPanel();
-      setInterval(refreshCurrentMessage, 1000);
-      setInterval(processPendingCommands, DISPLAY_POLL_MS);
-      setInterval(heartbeatPanel, PANEL_HEARTBEAT_MS);
+      if (!displayIntervalsStarted) {
+        displayIntervalsStarted = true;
+        setInterval(refreshCurrentMessage, 1000);
+        setInterval(processPendingCommands, DISPLAY_POLL_MS);
+        setInterval(heartbeatPanel, PANEL_HEARTBEAT_MS);
+      }
     }
 
     function startControlLoops() {
@@ -433,12 +430,15 @@
       setConnection("Controle conectado.");
       refreshCurrentMessage();
       checkPanelLiveness();
-      setInterval(refreshCurrentMessage, 2000);
-      setInterval(checkPanelLiveness, CONTROL_POLL_MS);
-      setInterval(() => {
-        pollCommandStatus(lastTextCommandId, "texto");
-        pollCommandStatus(lastSoundCommandId, "som");
-      }, CONTROL_POLL_MS);
+      if (!controlIntervalsStarted) {
+        controlIntervalsStarted = true;
+        setInterval(refreshCurrentMessage, 2000);
+        setInterval(checkPanelLiveness, CONTROL_POLL_MS);
+        setInterval(() => {
+          pollCommandStatus(lastTextCommandId, "texto");
+          pollCommandStatus(lastSoundCommandId, "som");
+        }, CONTROL_POLL_MS);
+      }
     }
 
     function initSupabase() {
