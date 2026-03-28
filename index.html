@@ -7,101 +7,19 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background: #000; color: #fff; }
+    html, body {
+      margin: 0; padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000; color: #fff;
+    }
     .hidden { display: none !important; }
-
     .topbar {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      padding: 14px;
-      background: #0a0a0a;
-      border-bottom: 1px solid #222;
-      position: sticky;
-      top: 0;
-      z-index: 20;
+      display: flex; gap: 10px; justify-content: flex-end;
+      padding: 14px; background: #0a0a0a; border-bottom: 1px solid #222;
+      position: sticky; top: 0; z-index: 20;
     }
-
     .screen { min-height: calc(100vh - 61px); width: 100%; }
-
-    .control {
-      background: #111;
-      padding: 20px;
-    }
-
-    .wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    .title {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .subtitle {
-      color: #bbb;
-      margin-bottom: 20px;
-      line-height: 1.5;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 260px;
-      border-radius: 16px;
-      border: 1px solid #444;
-      background: #000;
-      color: #fff;
-      padding: 16px;
-      font-size: 28px;
-      resize: vertical;
-      outline: none;
-    }
-
-    .buttons {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-
-    button {
-      border: 0;
-      border-radius: 14px;
-      padding: 16px 20px;
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .primary {
-      background: #fff;
-      color: #000;
-    }
-
-    .secondary {
-      background: #222;
-      color: #fff;
-      border: 1px solid #444;
-    }
-
-    .status {
-      margin-top: 18px;
-      padding: 14px 16px;
-      border-radius: 14px;
-      background: #181818;
-      border: 1px solid #333;
-      color: #ddd;
-      line-height: 1.5;
-    }
-
-    .smallnote {
-      font-size: 14px;
-      color: #aaa;
-      margin-top: 10px;
-    }
-
+    .control { background: #111; padding: 20px; }
     .display {
       background: #000;
       display: flex;
@@ -110,34 +28,54 @@
       padding: 40px;
       text-align: center;
     }
-
-    .display-inner {
-      width: 100%;
-      max-width: 1600px;
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    .title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #bbb; margin-bottom: 20px; line-height: 1.5; }
+    textarea {
+      width: 100%; min-height: 240px; border-radius: 16px; border: 1px solid #444;
+      background: #000; color: #fff; padding: 16px; font-size: 28px;
+      resize: vertical; outline: none;
     }
-
+    .buttons, .name-buttons {
+      display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;
+    }
+    button {
+      border: 0; border-radius: 14px; padding: 16px 20px;
+      font-size: 18px; font-weight: 700; cursor: pointer;
+    }
+    .secondary { background: #222; color: #fff; border: 1px solid #444; }
+    .danger { background: #ff3b30; color: #fff; }
+    .name-btn { min-width: 170px; background: #1d1d1d; color: #fff; border: 1px solid #444; }
+    .status-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px;
+    }
+    .status {
+      padding: 14px 16px; border-radius: 14px; background: #181818;
+      border: 1px solid #333; color: #ddd; line-height: 1.5; min-height: 82px;
+    }
+    .status b { color: #fff; display: block; margin-bottom: 6px; }
+    .smallnote { font-size: 14px; color: #aaa; margin-top: 12px; line-height: 1.5; }
+    .display-inner { width: 100%; max-width: 1600px; }
     .display-kicker {
-      font-size: 14px;
-      letter-spacing: 0.35em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.45);
-      margin-bottom: 28px;
+      font-size: 14px; letter-spacing: 0.35em; text-transform: uppercase;
+      color: rgba(255,255,255,0.45); margin-bottom: 28px;
     }
-
     .display-text {
-      width: 100%;
-      font-weight: 700;
-      line-height: 0.94;
-      word-break: break-word;
-      white-space: pre-wrap;
+      width: 100%; font-weight: 700; line-height: 0.94;
+      word-break: break-word; white-space: pre-wrap;
     }
-
+    .display-badge {
+      margin-top: 22px; color: rgba(255,255,255,0.65);
+      font-size: 18px; min-height: 24px;
+    }
     @media (max-width: 768px) {
       .title { font-size: 24px; }
-      textarea { font-size: 24px; min-height: 220px; }
+      textarea { font-size: 24px; min-height: 200px; }
       button { width: 100%; }
       .topbar { justify-content: stretch; flex-wrap: wrap; }
       .topbar button { flex: 1 1 100%; }
+      .status-grid { grid-template-columns: 1fr; }
+      .name-btn { min-width: 100%; }
     }
   </style>
 </head>
@@ -151,19 +89,32 @@
     <div class="wrap">
       <div class="title">Controle da loja</div>
       <div class="subtitle">
-        Digite no celular e a mensagem aparece no painel do computador em tempo real.
+        Digite no celular e a TV atualiza. Se a TV ficar sem internet, os comandos sonoros ficam na fila e executam quando ela reconectar.
       </div>
 
       <textarea id="messageInput" placeholder="Digite aqui..."></textarea>
 
       <div class="buttons">
-        <button class="primary" id="alarmButton" type="button">Alarme</button>
         <button class="secondary" id="clearButton" type="button">Limpar</button>
-        <button class="secondary" id="voiceButton" type="button">Segure para falar (em breve)</button>
       </div>
 
-      <div class="status" id="statusBox">Conectando...</div>
-      <div class="smallnote">Projeto fixo para uma única loja, sem código de sala.</div>
+      <div class="name-buttons">
+        <button class="name-btn" data-name="Nicolly" type="button">Nicolly</button>
+        <button class="name-btn" data-name="Tibério" type="button">Tibério</button>
+        <button class="name-btn" data-name="LarrisaY" type="button">LarrisaY</button>
+        <button class="danger" id="alertButton" type="button">ALERTA SONORO</button>
+      </div>
+
+      <div class="status-grid">
+        <div class="status" id="connectionStatus"><b>Conexão</b>Conectando...</div>
+        <div class="status" id="panelStatus"><b>Painel</b>Aguardando confirmação da TV...</div>
+        <div class="status" id="textStatus"><b>Último texto</b>Nenhum comando enviado ainda.</div>
+        <div class="status" id="soundStatus"><b>Último som</b>Nenhum comando enviado ainda.</div>
+      </div>
+
+      <div class="smallnote">
+        Os botões de nomes usam a voz do navegador da TV/computador para falar o nome em voz alta. O alerta sonoro toca uma sirene de cerca de 2 segundos.
+      </div>
     </div>
   </section>
 
@@ -171,42 +122,50 @@
     <div class="display-inner">
       <div class="display-kicker">Painel da loja</div>
       <div class="display-text" id="displayText">Digite no celular para aparecer aqui</div>
+      <div class="display-badge" id="displayBadge"></div>
     </div>
   </section>
 
   <script>
     const SUPABASE_URL = "https://cunljsxsijvjuqetkwry.supabase.co";
     const SUPABASE_KEY = "sb_publishable_S_qPXf4Q-IWtOyiqA4d1KQ_wleiP_48";
-    const CHANNEL_NAME = "painel-loja-unica";
+    const PANEL_ID = 1;
+    const PANEL_HEARTBEAT_MS = 4000;
+    const CONTROL_POLL_MS = 1500;
+    const DISPLAY_POLL_MS = 1000;
 
     const controlScreen = document.getElementById("controlScreen");
     const displayScreen = document.getElementById("displayScreen");
     const displayText = document.getElementById("displayText");
+    const displayBadge = document.getElementById("displayBadge");
     const messageInput = document.getElementById("messageInput");
-    const alarmButton = document.getElementById("alarmButton");
     const clearButton = document.getElementById("clearButton");
-    const voiceButton = document.getElementById("voiceButton");
-    const statusBox = document.getElementById("statusBox");
+    const alertButton = document.getElementById("alertButton");
     const btnControl = document.getElementById("btnControl");
     const btnDisplay = document.getElementById("btnDisplay");
+    const connectionStatus = document.getElementById("connectionStatus");
+    const panelStatus = document.getElementById("panelStatus");
+    const textStatus = document.getElementById("textStatus");
+    const soundStatus = document.getElementById("soundStatus");
+    const nameButtons = Array.from(document.querySelectorAll(".name-btn"));
 
-    function getModeFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("mode") === "display" ? "display" : "control";
-    }
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode") === "display" ? "display" : "control";
 
-    let mode = getModeFromUrl();
+    let supabase = null;
+    let lastTextCommandId = null;
+    let lastSoundCommandId = null;
+    let lastShownMessage = "";
+    let typingTimer = null;
 
-    function setMode(nextMode) {
-      mode = nextMode;
+    function goToMode(nextMode) {
       const url = new URL(window.location.href);
       url.searchParams.set("mode", nextMode);
-      window.history.replaceState({}, "", url.toString());
-      renderMode();
+      window.location.href = url.toString();
     }
 
-    btnControl.addEventListener("click", function () { setMode("control"); });
-    btnDisplay.addEventListener("click", function () { setMode("display"); });
+    btnControl.addEventListener("click", () => goToMode("control"));
+    btnDisplay.addEventListener("click", () => goToMode("display"));
 
     function renderMode() {
       controlScreen.classList.toggle("hidden", mode !== "control");
@@ -226,132 +185,262 @@
     }
 
     function applyDisplayText(text) {
-      const original = (typeof text === "string") ? text : "";
+      const original = typeof text === "string" ? text : "";
       const content = original.trim() ? original : "Digite no celular para aparecer aqui";
       displayText.textContent = content;
       displayText.style.fontSize = estimateFontSize(content) + "px";
+      lastShownMessage = original;
     }
 
-    function setStatus(text) {
-      statusBox.textContent = text;
+    function setConnection(text) { connectionStatus.innerHTML = "<b>Conexão</b>" + text; }
+    function setPanel(text) { panelStatus.innerHTML = "<b>Painel</b>" + text; }
+    function setTextStatus(text) { textStatus.innerHTML = "<b>Último texto</b>" + text; }
+    function setSoundStatus(text) { soundStatus.innerHTML = "<b>Último som</b>" + text; }
+
+    function formatDateTime(iso) {
+      if (!iso) return "-";
+      try { return new Date(iso).toLocaleString("pt-BR"); } catch { return iso; }
     }
 
-    function playAlarm() {
+    function playSiren() {
       try {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) return;
         const ctx = new AudioContextClass();
         const now = ctx.currentTime;
         const master = ctx.createGain();
-        master.gain.value = 0.12;
+        master.gain.value = 0.18;
         master.connect(ctx.destination);
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sawtooth";
+        for (let i = 0; i < 8; i++) {
+          const start = now + i * 0.25;
+          osc.frequency.setValueAtTime(650, start);
+          osc.frequency.linearRampToValueAtTime(1250, start + 0.125);
+          osc.frequency.linearRampToValueAtTime(650, start + 0.25);
+        }
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.9, now + 0.03);
+        gain.gain.setValueAtTime(0.9, now + 1.9);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.02);
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 2.05);
+        setTimeout(() => { ctx.close().catch(() => {}); }, 2600);
+      } catch (e) { console.error(e); }
+    }
 
-        [0, 0.22, 0.44].forEach((offset, index) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = index % 2 === 0 ? "square" : "sine";
-          osc.frequency.value = index % 2 === 0 ? 880 : 660;
-          gain.gain.setValueAtTime(0.0001, now + offset);
-          gain.gain.exponentialRampToValueAtTime(0.9, now + offset + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.18);
-          osc.connect(gain);
-          gain.connect(master);
-          osc.start(now + offset);
-          osc.stop(now + offset + 0.2);
+    function speakText(text) {
+      if (!("speechSynthesis" in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "pt-BR";
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        window.speechSynthesis.speak(utterance);
+      } catch (e) { console.error(e); }
+    }
+
+    async function refreshCurrentMessage() {
+      if (!supabase) return;
+      const { data, error } = await supabase.from("painel_estado").select("mensagem, updated_at").eq("id", PANEL_ID).single();
+      if (!error && data) {
+        if (mode === "control" && document.activeElement !== messageInput && messageInput.value !== (data.mensagem || "")) {
+          messageInput.value = data.mensagem || "";
+        }
+        if (mode === "display" && (data.mensagem || "") !== lastShownMessage) {
+          applyDisplayText(data.mensagem || "");
+        }
+      }
+    }
+
+    async function upsertPanelMessage(text) {
+      if (!supabase) return { error: new Error("Sem conexão Supabase") };
+      return await supabase.from("painel_estado").upsert({ id: PANEL_ID, mensagem: text });
+    }
+
+    async function enqueueCommand(tipo, conteudo) {
+      if (!supabase) return { error: new Error("Sem conexão Supabase") };
+      return await supabase.from("painel_comandos")
+        .insert({ tipo, conteudo, status: "pendente" })
+        .select("id, tipo, conteudo, status, criado_em")
+        .single();
+    }
+
+    async function markCommand(commandId, status) {
+      if (!supabase) return;
+      const patch = { status };
+      if (status === "recebido") patch.recebido_em = new Date().toISOString();
+      if (status === "executado") patch.executado_em = new Date().toISOString();
+      await supabase.from("painel_comandos").update(patch).eq("id", commandId);
+    }
+
+    async function processPendingCommands() {
+      if (!supabase || mode !== "display") return;
+      const { data, error } = await supabase
+        .from("painel_comandos")
+        .select("id, tipo, conteudo")
+        .eq("status", "pendente")
+        .order("id", { ascending: true })
+        .limit(25);
+
+      if (error) {
+        displayBadge.textContent = "Erro ao buscar fila.";
+        return;
+      }
+      if (!data || data.length === 0) return;
+
+      for (const cmd of data) {
+        await markCommand(cmd.id, "recebido");
+        if (cmd.tipo === "texto") {
+          applyDisplayText(cmd.conteudo || "");
+        } else if (cmd.tipo === "audio_nome") {
+          displayBadge.textContent = "Chamando: " + (cmd.conteudo || "");
+          speakText(cmd.conteudo || "");
+        } else if (cmd.tipo === "sirene") {
+          displayBadge.textContent = "ALERTA SONORO";
+          playSiren();
+        }
+        await markCommand(cmd.id, "executado");
+      }
+
+      setTimeout(() => {
+        if (displayBadge.textContent) displayBadge.textContent = "";
+      }, 2500);
+    }
+
+    async function heartbeatPanel() {
+      if (!supabase || mode !== "display") return;
+      await supabase.from("painel_estado").update({ updated_at: new Date().toISOString() }).eq("id", PANEL_ID);
+    }
+
+    async function pollCommandStatus(commandId, kind) {
+      if (!supabase || !commandId || mode !== "control") return;
+      const { data, error } = await supabase
+        .from("painel_comandos")
+        .select("status, criado_em, recebido_em, executado_em")
+        .eq("id", commandId)
+        .single();
+
+      if (error || !data) return;
+      const msg =
+        data.status === "pendente" ? "Enviado às " + formatDateTime(data.criado_em) + ". Ainda na fila."
+        : data.status === "recebido" ? "Chegou na TV às " + formatDateTime(data.recebido_em) + ". Executando..."
+        : "Executado na TV às " + formatDateTime(data.executado_em) + ".";
+
+      if (kind === "texto") setTextStatus(msg);
+      if (kind === "som") setSoundStatus(msg);
+    }
+
+    async function checkPanelLiveness() {
+      if (!supabase || mode !== "control") return;
+      const { data, error } = await supabase.from("painel_estado").select("updated_at").eq("id", PANEL_ID).single();
+      if (error || !data || !data.updated_at) {
+        setPanel("Não consegui ler o estado da TV.");
+        return;
+      }
+      const age = Date.now() - new Date(data.updated_at).getTime();
+      if (age <= PANEL_HEARTBEAT_MS * 2) setPanel("TV conectada.");
+      else setPanel("TV aparentemente offline ou com internet oscilando.");
+    }
+
+    async function handleTextSend(text) {
+      setTextStatus("Enviando texto...");
+      const save = await upsertPanelMessage(text);
+      if (save.error) {
+        setTextStatus("Erro ao salvar texto.");
+        return;
+      }
+      const ins = await enqueueCommand("texto", text);
+      if (ins.error || !ins.data) {
+        setTextStatus("Erro ao colocar texto na fila.");
+        return;
+      }
+      lastTextCommandId = ins.data.id;
+      setTextStatus("Texto enviado para a fila.");
+    }
+
+    async function handleSoundSend(tipo, conteudo, label) {
+      setSoundStatus("Enviando " + label + "...");
+      const ins = await enqueueCommand(tipo, conteudo);
+      if (ins.error || !ins.data) {
+        setSoundStatus("Erro ao colocar " + label + " na fila.");
+        return;
+      }
+      lastSoundCommandId = ins.data.id;
+      setSoundStatus(label + " enviado para a fila.");
+    }
+
+    function attachControlEvents() {
+      messageInput.addEventListener("input", function () {
+        const text = messageInput.value;
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => handleTextSend(text), 250);
+      });
+
+      clearButton.addEventListener("click", async () => {
+        messageInput.value = "";
+        await handleTextSend("");
+      });
+
+      alertButton.addEventListener("click", async () => {
+        await handleSoundSend("sirene", "ALERTA SONORO", "alerta sonoro");
+      });
+
+      nameButtons.forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const name = btn.getAttribute("data-name");
+          await handleSoundSend("audio_nome", name, "chamada de " + name);
         });
+      });
+    }
 
-        setTimeout(function () {
-          ctx.close().catch(function () {});
-        }, 1200);
+    function initSupabase() {
+      if (!window.supabase) {
+        setConnection("Erro ao carregar Supabase.");
+        return;
+      }
+      try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        setConnection("Conectado.");
       } catch (e) {
         console.error(e);
+        setConnection("Erro ao iniciar Supabase.");
       }
+    }
+
+    function startControl() {
+      setConnection("Controle conectado.");
+      refreshCurrentMessage();
+      checkPanelLiveness();
+      setInterval(refreshCurrentMessage, 2000);
+      setInterval(checkPanelLiveness, CONTROL_POLL_MS);
+      setInterval(() => {
+        pollCommandStatus(lastTextCommandId, "texto");
+        pollCommandStatus(lastSoundCommandId, "som");
+      }, CONTROL_POLL_MS);
+    }
+
+    function startDisplay() {
+      refreshCurrentMessage();
+      processPendingCommands();
+      heartbeatPanel();
+      setInterval(refreshCurrentMessage, 1000);
+      setInterval(processPendingCommands, DISPLAY_POLL_MS);
+      setInterval(heartbeatPanel, PANEL_HEARTBEAT_MS);
     }
 
     renderMode();
     applyDisplayText("");
+    attachControlEvents();
+    initSupabase();
 
-    if (!window.supabase) {
-      setStatus("Erro ao carregar Supabase.");
-      console.error("Supabase JS não carregou.");
-    } else {
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-      const channel = supabase.channel(CHANNEL_NAME, {
-        config: { broadcast: { self: true } }
-      });
-
-      let typingTimer = null;
-
-      messageInput.addEventListener("input", function () {
-        const text = messageInput.value;
-        applyDisplayText(text);
-
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(function () {
-          channel.send({
-            type: "broadcast",
-            event: "text-update",
-            payload: { text: text }
-          });
-        }, 60);
-      });
-
-      alarmButton.addEventListener("click", function () {
-        channel.send({
-          type: "broadcast",
-          event: "alarm",
-          payload: { at: Date.now() }
-        });
-      });
-
-      clearButton.addEventListener("click", function () {
-        messageInput.value = "";
-        applyDisplayText("");
-        channel.send({
-          type: "broadcast",
-          event: "text-update",
-          payload: { text: "" }
-        });
-      });
-
-      function startVoiceState() {
-        voiceButton.textContent = "Falando... (em breve)";
-      }
-
-      function stopVoiceState() {
-        voiceButton.textContent = "Segure para falar (em breve)";
-      }
-
-      voiceButton.addEventListener("mousedown", startVoiceState);
-      voiceButton.addEventListener("mouseup", stopVoiceState);
-      voiceButton.addEventListener("mouseleave", stopVoiceState);
-      voiceButton.addEventListener("touchstart", startVoiceState);
-      voiceButton.addEventListener("touchend", stopVoiceState);
-
-      channel
-        .on("broadcast", { event: "text-update" }, function ({ payload }) {
-          const text = payload && typeof payload.text === "string" ? payload.text : "";
-          if (mode === "display") {
-            applyDisplayText(text);
-          }
-          if (mode === "control" && document.activeElement !== messageInput) {
-            messageInput.value = text;
-          }
-        })
-        .on("broadcast", { event: "alarm" }, function () {
-          if (mode === "display") {
-            playAlarm();
-          }
-        })
-        .subscribe(function (status) {
-          if (status === "SUBSCRIBED") {
-            setStatus("Conectado. Pode digitar no celular.");
-          } else {
-            setStatus("Status da conexão: " + status);
-          }
-        });
-    }
+    if (mode === "control") startControl();
+    if (mode === "display") startDisplay();
   </script>
 </body>
 </html>
