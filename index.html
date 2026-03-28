@@ -7,19 +7,122 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; }
-    html, body {
-      margin: 0; padding: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #000; color: #fff;
-    }
+    html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background: #000; color: #fff; }
     .hidden { display: none !important; }
+
     .topbar {
-      display: flex; gap: 10px; justify-content: flex-end;
-      padding: 14px; background: #0a0a0a; border-bottom: 1px solid #222;
-      position: sticky; top: 0; z-index: 20;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      padding: 14px;
+      background: #0a0a0a;
+      border-bottom: 1px solid #222;
+      position: sticky;
+      top: 0;
+      z-index: 20;
     }
+
     .screen { min-height: calc(100vh - 61px); width: 100%; }
-    .control { background: #111; padding: 20px; }
+
+    .control {
+      background: #111;
+      padding: 20px;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #bbb;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      border-radius: 16px;
+      border: 1px solid #444;
+      background: #000;
+      color: #fff;
+      padding: 16px;
+      font-size: 28px;
+      resize: vertical;
+      outline: none;
+    }
+
+    .buttons, .name-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 16px 20px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: #fff;
+      color: #000;
+    }
+
+    .secondary {
+      background: #222;
+      color: #fff;
+      border: 1px solid #444;
+    }
+
+    .danger {
+      background: #ff3b30;
+      color: #fff;
+    }
+
+    .name-btn {
+      min-width: 170px;
+      background: #1d1d1d;
+      color: #fff;
+      border: 1px solid #444;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .status {
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #181818;
+      border: 1px solid #333;
+      color: #ddd;
+      line-height: 1.5;
+      min-height: 82px;
+    }
+
+    .status b { color: #fff; display: block; margin-bottom: 6px; }
+
+    .smallnote {
+      font-size: 14px;
+      color: #aaa;
+      margin-top: 10px;
+    }
+
     .display {
       background: #000;
       display: flex;
@@ -28,46 +131,35 @@
       padding: 40px;
       text-align: center;
     }
-    .wrap { max-width: 1100px; margin: 0 auto; }
-    .title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
-    .subtitle { color: #bbb; margin-bottom: 20px; line-height: 1.5; }
-    textarea {
-      width: 100%; min-height: 240px; border-radius: 16px; border: 1px solid #444;
-      background: #000; color: #fff; padding: 16px; font-size: 28px;
-      resize: vertical; outline: none;
+
+    .display-inner {
+      width: 100%;
+      max-width: 1600px;
     }
-    .buttons, .name-buttons {
-      display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;
-    }
-    button {
-      border: 0; border-radius: 14px; padding: 16px 20px;
-      font-size: 18px; font-weight: 700; cursor: pointer;
-    }
-    .secondary { background: #222; color: #fff; border: 1px solid #444; }
-    .danger { background: #ff3b30; color: #fff; }
-    .name-btn { min-width: 170px; background: #1d1d1d; color: #fff; border: 1px solid #444; }
-    .status-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px;
-    }
-    .status {
-      padding: 14px 16px; border-radius: 14px; background: #181818;
-      border: 1px solid #333; color: #ddd; line-height: 1.5; min-height: 82px;
-    }
-    .status b { color: #fff; display: block; margin-bottom: 6px; }
-    .smallnote { font-size: 14px; color: #aaa; margin-top: 12px; line-height: 1.5; }
-    .display-inner { width: 100%; max-width: 1600px; }
+
     .display-kicker {
-      font-size: 14px; letter-spacing: 0.35em; text-transform: uppercase;
-      color: rgba(255,255,255,0.45); margin-bottom: 28px;
+      font-size: 14px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 28px;
     }
+
     .display-text {
-      width: 100%; font-weight: 700; line-height: 0.94;
-      word-break: break-word; white-space: pre-wrap;
+      width: 100%;
+      font-weight: 700;
+      line-height: 0.94;
+      word-break: break-word;
+      white-space: pre-wrap;
     }
+
     .display-badge {
-      margin-top: 22px; color: rgba(255,255,255,0.65);
-      font-size: 18px; min-height: 24px;
+      margin-top: 22px;
+      color: rgba(255,255,255,0.78);
+      font-size: 20px;
+      min-height: 28px;
     }
+
     @media (max-width: 768px) {
       .title { font-size: 24px; }
       textarea { font-size: 24px; min-height: 200px; }
@@ -101,7 +193,7 @@
       <div class="name-buttons">
         <button class="name-btn" data-name="Nicolly" type="button">Nicolly</button>
         <button class="name-btn" data-name="Tibério" type="button">Tibério</button>
-        <button class="name-btn" data-name="LarrisaY" type="button">LarrisaY</button>
+        <button class="name-btn" data-name="LARRISAV" type="button">LARRISAV</button>
         <button class="danger" id="alertButton" type="button">ALERTA SONORO</button>
       </div>
 
@@ -112,9 +204,7 @@
         <div class="status" id="soundStatus"><b>Último som</b>Nenhum comando enviado ainda.</div>
       </div>
 
-      <div class="smallnote">
-        Os botões de nomes usam a voz do navegador da TV/computador para falar o nome em voz alta. O alerta sonoro toca uma sirene de cerca de 2 segundos.
-      </div>
+      <div class="smallnote">Projeto fixo para uma única loja, sem código de sala.</div>
     </div>
   </section>
 
@@ -141,31 +231,47 @@
     const messageInput = document.getElementById("messageInput");
     const clearButton = document.getElementById("clearButton");
     const alertButton = document.getElementById("alertButton");
-    const btnControl = document.getElementById("btnControl");
-    const btnDisplay = document.getElementById("btnDisplay");
     const connectionStatus = document.getElementById("connectionStatus");
     const panelStatus = document.getElementById("panelStatus");
     const textStatus = document.getElementById("textStatus");
     const soundStatus = document.getElementById("soundStatus");
+    const btnControl = document.getElementById("btnControl");
+    const btnDisplay = document.getElementById("btnDisplay");
     const nameButtons = Array.from(document.querySelectorAll(".name-btn"));
 
-    const params = new URLSearchParams(window.location.search);
-    const mode = params.get("mode") === "display" ? "display" : "control";
-
-    let supabase = null;
-    let lastTextCommandId = null;
-    let lastSoundCommandId = null;
-    let lastShownMessage = "";
-    let typingTimer = null;
-
-    function goToMode(nextMode) {
-      const url = new URL(window.location.href);
-      url.searchParams.set("mode", nextMode);
-      window.location.href = url.toString();
+    function getModeFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("mode") === "display" ? "display" : "control";
     }
 
-    btnControl.addEventListener("click", () => goToMode("control"));
-    btnDisplay.addEventListener("click", () => goToMode("display"));
+    let mode = getModeFromUrl();
+    let typingTimer = null;
+    let controlIntervalsStarted = false;
+    let displayIntervalsStarted = false;
+    let lastShownMessage = "";
+    let lastTextCommandId = null;
+    let lastSoundCommandId = null;
+
+    function setMode(nextMode) {
+      mode = nextMode;
+      const url = new URL(window.location.href);
+      url.searchParams.set("mode", nextMode);
+      window.history.replaceState({}, "", url.toString());
+      renderMode();
+      if (mode === "display") {
+        startDisplayIntervals();
+        refreshCurrentMessage();
+        processPendingCommands();
+        heartbeatPanel();
+      } else {
+        startControlIntervals();
+        refreshCurrentMessage();
+        checkPanelLiveness();
+      }
+    }
+
+    btnControl.addEventListener("click", function () { setMode("control"); });
+    btnDisplay.addEventListener("click", function () { setMode("display"); });
 
     function renderMode() {
       controlScreen.classList.toggle("hidden", mode !== "control");
@@ -185,7 +291,7 @@
     }
 
     function applyDisplayText(text) {
-      const original = typeof text === "string" ? text : "";
+      const original = (typeof text === "string") ? text : "";
       const content = original.trim() ? original : "Digite no celular para aparecer aqui";
       displayText.textContent = content;
       displayText.style.fontSize = estimateFontSize(content) + "px";
@@ -209,27 +315,36 @@
         const ctx = new AudioContextClass();
         const now = ctx.currentTime;
         const master = ctx.createGain();
-        master.gain.value = 0.18;
+        master.gain.value = 0.22;
         master.connect(ctx.destination);
+
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sawtooth";
+
         for (let i = 0; i < 8; i++) {
           const start = now + i * 0.25;
           osc.frequency.setValueAtTime(650, start);
-          osc.frequency.linearRampToValueAtTime(1250, start + 0.125);
+          osc.frequency.linearRampToValueAtTime(1350, start + 0.125);
           osc.frequency.linearRampToValueAtTime(650, start + 0.25);
         }
+
         gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.exponentialRampToValueAtTime(0.9, now + 0.03);
-        gain.gain.setValueAtTime(0.9, now + 1.9);
+        gain.gain.exponentialRampToValueAtTime(0.95, now + 0.03);
+        gain.gain.setValueAtTime(0.95, now + 1.9);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.02);
+
         osc.connect(gain);
         gain.connect(master);
         osc.start(now);
         osc.stop(now + 2.05);
-        setTimeout(() => { ctx.close().catch(() => {}); }, 2600);
-      } catch (e) { console.error(e); }
+
+        setTimeout(function () {
+          ctx.close().catch(function () {});
+        }, 2600);
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     function speakText(text) {
@@ -242,205 +357,256 @@
         utterance.pitch = 1.0;
         utterance.volume = 1.0;
         window.speechSynthesis.speak(utterance);
-      } catch (e) { console.error(e); }
-    }
-
-    async function refreshCurrentMessage() {
-      if (!supabase) return;
-      const { data, error } = await supabase.from("painel_estado").select("mensagem, updated_at").eq("id", PANEL_ID).single();
-      if (!error && data) {
-        if (mode === "control" && document.activeElement !== messageInput && messageInput.value !== (data.mensagem || "")) {
-          messageInput.value = data.mensagem || "";
-        }
-        if (mode === "display" && (data.mensagem || "") !== lastShownMessage) {
-          applyDisplayText(data.mensagem || "");
-        }
-      }
-    }
-
-    async function upsertPanelMessage(text) {
-      if (!supabase) return { error: new Error("Sem conexão Supabase") };
-      return await supabase.from("painel_estado").upsert({ id: PANEL_ID, mensagem: text });
-    }
-
-    async function enqueueCommand(tipo, conteudo) {
-      if (!supabase) return { error: new Error("Sem conexão Supabase") };
-      return await supabase.from("painel_comandos")
-        .insert({ tipo, conteudo, status: "pendente" })
-        .select("id, tipo, conteudo, status, criado_em")
-        .single();
-    }
-
-    async function markCommand(commandId, status) {
-      if (!supabase) return;
-      const patch = { status };
-      if (status === "recebido") patch.recebido_em = new Date().toISOString();
-      if (status === "executado") patch.executado_em = new Date().toISOString();
-      await supabase.from("painel_comandos").update(patch).eq("id", commandId);
-    }
-
-    async function processPendingCommands() {
-      if (!supabase || mode !== "display") return;
-      const { data, error } = await supabase
-        .from("painel_comandos")
-        .select("id, tipo, conteudo")
-        .eq("status", "pendente")
-        .order("id", { ascending: true })
-        .limit(25);
-
-      if (error) {
-        displayBadge.textContent = "Erro ao buscar fila.";
-        return;
-      }
-      if (!data || data.length === 0) return;
-
-      for (const cmd of data) {
-        await markCommand(cmd.id, "recebido");
-        if (cmd.tipo === "texto") {
-          applyDisplayText(cmd.conteudo || "");
-        } else if (cmd.tipo === "audio_nome") {
-          displayBadge.textContent = "Chamando: " + (cmd.conteudo || "");
-          speakText(cmd.conteudo || "");
-        } else if (cmd.tipo === "sirene") {
-          displayBadge.textContent = "ALERTA SONORO";
-          playSiren();
-        }
-        await markCommand(cmd.id, "executado");
-      }
-
-      setTimeout(() => {
-        if (displayBadge.textContent) displayBadge.textContent = "";
-      }, 2500);
-    }
-
-    async function heartbeatPanel() {
-      if (!supabase || mode !== "display") return;
-      await supabase.from("painel_estado").update({ updated_at: new Date().toISOString() }).eq("id", PANEL_ID);
-    }
-
-    async function pollCommandStatus(commandId, kind) {
-      if (!supabase || !commandId || mode !== "control") return;
-      const { data, error } = await supabase
-        .from("painel_comandos")
-        .select("status, criado_em, recebido_em, executado_em")
-        .eq("id", commandId)
-        .single();
-
-      if (error || !data) return;
-      const msg =
-        data.status === "pendente" ? "Enviado às " + formatDateTime(data.criado_em) + ". Ainda na fila."
-        : data.status === "recebido" ? "Chegou na TV às " + formatDateTime(data.recebido_em) + ". Executando..."
-        : "Executado na TV às " + formatDateTime(data.executado_em) + ".";
-
-      if (kind === "texto") setTextStatus(msg);
-      if (kind === "som") setSoundStatus(msg);
-    }
-
-    async function checkPanelLiveness() {
-      if (!supabase || mode !== "control") return;
-      const { data, error } = await supabase.from("painel_estado").select("updated_at").eq("id", PANEL_ID).single();
-      if (error || !data || !data.updated_at) {
-        setPanel("Não consegui ler o estado da TV.");
-        return;
-      }
-      const age = Date.now() - new Date(data.updated_at).getTime();
-      if (age <= PANEL_HEARTBEAT_MS * 2) setPanel("TV conectada.");
-      else setPanel("TV aparentemente offline ou com internet oscilando.");
-    }
-
-    async function handleTextSend(text) {
-      setTextStatus("Enviando texto...");
-      const save = await upsertPanelMessage(text);
-      if (save.error) {
-        setTextStatus("Erro ao salvar texto.");
-        return;
-      }
-      const ins = await enqueueCommand("texto", text);
-      if (ins.error || !ins.data) {
-        setTextStatus("Erro ao colocar texto na fila.");
-        return;
-      }
-      lastTextCommandId = ins.data.id;
-      setTextStatus("Texto enviado para a fila.");
-    }
-
-    async function handleSoundSend(tipo, conteudo, label) {
-      setSoundStatus("Enviando " + label + "...");
-      const ins = await enqueueCommand(tipo, conteudo);
-      if (ins.error || !ins.data) {
-        setSoundStatus("Erro ao colocar " + label + " na fila.");
-        return;
-      }
-      lastSoundCommandId = ins.data.id;
-      setSoundStatus(label + " enviado para a fila.");
-    }
-
-    function attachControlEvents() {
-      messageInput.addEventListener("input", function () {
-        const text = messageInput.value;
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => handleTextSend(text), 250);
-      });
-
-      clearButton.addEventListener("click", async () => {
-        messageInput.value = "";
-        await handleTextSend("");
-      });
-
-      alertButton.addEventListener("click", async () => {
-        await handleSoundSend("sirene", "ALERTA SONORO", "alerta sonoro");
-      });
-
-      nameButtons.forEach((btn) => {
-        btn.addEventListener("click", async () => {
-          const name = btn.getAttribute("data-name");
-          await handleSoundSend("audio_nome", name, "chamada de " + name);
-        });
-      });
-    }
-
-    function initSupabase() {
-      if (!window.supabase) {
-        setConnection("Erro ao carregar Supabase.");
-        return;
-      }
-      try {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        setConnection("Conectado.");
       } catch (e) {
         console.error(e);
-        setConnection("Erro ao iniciar Supabase.");
       }
-    }
-
-    function startControl() {
-      setConnection("Controle conectado.");
-      refreshCurrentMessage();
-      checkPanelLiveness();
-      setInterval(refreshCurrentMessage, 2000);
-      setInterval(checkPanelLiveness, CONTROL_POLL_MS);
-      setInterval(() => {
-        pollCommandStatus(lastTextCommandId, "texto");
-        pollCommandStatus(lastSoundCommandId, "som");
-      }, CONTROL_POLL_MS);
-    }
-
-    function startDisplay() {
-      refreshCurrentMessage();
-      processPendingCommands();
-      heartbeatPanel();
-      setInterval(refreshCurrentMessage, 1000);
-      setInterval(processPendingCommands, DISPLAY_POLL_MS);
-      setInterval(heartbeatPanel, PANEL_HEARTBEAT_MS);
     }
 
     renderMode();
     applyDisplayText("");
-    attachControlEvents();
-    initSupabase();
 
-    if (mode === "control") startControl();
-    if (mode === "display") startDisplay();
+    if (!window.supabase) {
+      setConnection("Erro ao carregar Supabase.");
+      console.error("Supabase JS não carregou.");
+    } else {
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      async function refreshCurrentMessage() {
+        try {
+          const { data, error } = await supabase
+            .from("painel_estado")
+            .select("mensagem, updated_at")
+            .eq("id", PANEL_ID)
+            .single();
+
+          if (!error && data) {
+            const msg = data.mensagem || "";
+            if (mode === "control" && document.activeElement !== messageInput && messageInput.value !== msg) {
+              messageInput.value = msg;
+            }
+            if (mode === "display" && msg !== lastShownMessage) {
+              applyDisplayText(msg);
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      async function upsertPanelMessage(text) {
+        return await supabase
+          .from("painel_estado")
+          .upsert({ id: PANEL_ID, mensagem: text });
+      }
+
+      async function enqueueCommand(tipo, conteudo) {
+        return await supabase
+          .from("painel_comandos")
+          .insert({ tipo: tipo, conteudo: conteudo, status: "pendente" })
+          .select("id, criado_em")
+          .single();
+      }
+
+      async function markCommand(commandId, status) {
+        const patch = { status: status };
+        if (status === "recebido") patch.recebido_em = new Date().toISOString();
+        if (status === "executado") patch.executado_em = new Date().toISOString();
+
+        return await supabase
+          .from("painel_comandos")
+          .update(patch)
+          .eq("id", commandId);
+      }
+
+      async function processPendingCommands() {
+        if (mode !== "display") return;
+
+        try {
+          const { data, error } = await supabase
+            .from("painel_comandos")
+            .select("id, tipo, conteudo")
+            .eq("status", "pendente")
+            .order("id", { ascending: true })
+            .limit(25);
+
+          if (error) {
+            displayBadge.textContent = "Erro ao buscar fila.";
+            return;
+          }
+          if (!data || data.length === 0) return;
+
+          for (const cmd of data) {
+            await markCommand(cmd.id, "recebido");
+
+            if (cmd.tipo === "texto") {
+              applyDisplayText(cmd.conteudo || "");
+            } else if (cmd.tipo === "audio_nome") {
+              displayBadge.textContent = "Chamando: " + (cmd.conteudo || "");
+              speakText(cmd.conteudo || "");
+            } else if (cmd.tipo === "sirene") {
+              displayBadge.textContent = "ALERTA SONORO";
+              playSiren();
+            }
+
+            await markCommand(cmd.id, "executado");
+          }
+
+          setTimeout(function () {
+            displayBadge.textContent = "";
+          }, 2500);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      async function heartbeatPanel() {
+        if (mode !== "display") return;
+        try {
+          await supabase
+            .from("painel_estado")
+            .update({ updated_at: new Date().toISOString() })
+            .eq("id", PANEL_ID);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      async function checkPanelLiveness() {
+        if (mode !== "control") return;
+        try {
+          const { data, error } = await supabase
+            .from("painel_estado")
+            .select("updated_at")
+            .eq("id", PANEL_ID)
+            .single();
+
+          if (error || !data || !data.updated_at) {
+            setPanel("Não consegui ler o estado da TV.");
+            return;
+          }
+
+          const age = Date.now() - new Date(data.updated_at).getTime();
+          if (age <= PANEL_HEARTBEAT_MS * 2) {
+            setPanel("TV conectada.");
+          } else {
+            setPanel("TV aparentemente offline ou com internet oscilando.");
+          }
+        } catch (e) {
+          console.error(e);
+          setPanel("Erro ao verificar a TV.");
+        }
+      }
+
+      async function pollCommandStatus(commandId, kind) {
+        if (mode !== "control" || !commandId) return;
+        try {
+          const { data, error } = await supabase
+            .from("painel_comandos")
+            .select("status, criado_em, recebido_em, executado_em")
+            .eq("id", commandId)
+            .single();
+
+          if (error || !data) return;
+
+          const msg =
+            data.status === "pendente"
+              ? "Enviado às " + formatDateTime(data.criado_em) + ". Ainda na fila."
+              : data.status === "recebido"
+              ? "Chegou na TV às " + formatDateTime(data.recebido_em) + ". Executando..."
+              : "Executado na TV às " + formatDateTime(data.executado_em) + ".";
+
+          if (kind === "texto") setTextStatus(msg);
+          if (kind === "som") setSoundStatus(msg);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      async function handleTextSend(text) {
+        setTextStatus("Enviando texto...");
+        const save = await upsertPanelMessage(text);
+        if (save.error) {
+          setTextStatus("Erro ao salvar texto.");
+          return;
+        }
+
+        const ins = await enqueueCommand("texto", text);
+        if (ins.error || !ins.data) {
+          setTextStatus("Erro ao colocar texto na fila.");
+          return;
+        }
+
+        lastTextCommandId = ins.data.id;
+        setTextStatus("Texto enviado para a fila.");
+      }
+
+      async function handleSoundSend(tipo, conteudo, label) {
+        setSoundStatus("Enviando " + label + "...");
+        const ins = await enqueueCommand(tipo, conteudo);
+        if (ins.error || !ins.data) {
+          setSoundStatus("Erro ao colocar " + label + " na fila.");
+          return;
+        }
+
+        lastSoundCommandId = ins.data.id;
+        setSoundStatus(label + " enviado para a fila.");
+      }
+
+      messageInput.addEventListener("input", function () {
+        const text = messageInput.value;
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(function () {
+          handleTextSend(text);
+        }, 250);
+      });
+
+      clearButton.addEventListener("click", async function () {
+        messageInput.value = "";
+        await handleTextSend("");
+      });
+
+      alertButton.addEventListener("click", async function () {
+        await handleSoundSend("sirene", "ALERTA SONORO", "alerta sonoro");
+      });
+
+      nameButtons.forEach(function (btn) {
+        btn.addEventListener("click", async function () {
+          const name = btn.getAttribute("data-name");
+          await handleSoundSend("audio_nome", name, "chamada de " + name);
+        });
+      });
+
+      function startControlIntervals() {
+        if (controlIntervalsStarted) return;
+        controlIntervalsStarted = true;
+        setConnection("Controle conectado.");
+        setInterval(function () { refreshCurrentMessage(); }, 2000);
+        setInterval(function () { checkPanelLiveness(); }, CONTROL_POLL_MS);
+        setInterval(function () {
+          pollCommandStatus(lastTextCommandId, "texto");
+          pollCommandStatus(lastSoundCommandId, "som");
+        }, CONTROL_POLL_MS);
+      }
+
+      function startDisplayIntervals() {
+        if (displayIntervalsStarted) return;
+        displayIntervalsStarted = true;
+        setInterval(function () { refreshCurrentMessage(); }, 1000);
+        setInterval(function () { processPendingCommands(); }, DISPLAY_POLL_MS);
+        setInterval(function () { heartbeatPanel(); }, PANEL_HEARTBEAT_MS);
+      }
+
+      if (mode === "display") {
+        startDisplayIntervals();
+        refreshCurrentMessage();
+        processPendingCommands();
+        heartbeatPanel();
+      } else {
+        startControlIntervals();
+        refreshCurrentMessage();
+        checkPanelLiveness();
+      }
+    }
   </script>
 </body>
 </html>
