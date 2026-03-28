@@ -22,11 +22,11 @@
       z-index: 20;
     }
 
-    .screen { min-height: calc(100vh - 61px); width: 100%; }
+    .screen { min-height: 100vh; width: 100%; }
 
     .control {
       background: #111;
-      padding: 20px;
+      padding: 12px;
     }
 
     .wrap {
@@ -47,43 +47,43 @@
     }
 
     .section-title {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
-      margin-top: 18px;
-      margin-bottom: 10px;
+      margin-top: 10px;
+      margin-bottom: 6px;
       color: #fff;
     }
 
     textarea {
       width: 100%;
-      min-height: 180px;
+      min-height: 125px;
       border-radius: 16px;
       border: 1px solid #444;
       background: #000;
       color: #fff;
-      padding: 16px;
-      font-size: 28px;
+      padding: 12px;
+      font-size: 22px;
       resize: vertical;
       outline: none;
     }
 
     .speech-box {
-      min-height: 110px;
-      font-size: 24px;
+      min-height: 68px;
+      font-size: 20px;
     }
 
     .buttons, .name-buttons, .speech-actions {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       flex-wrap: wrap;
-      margin-top: 16px;
+      margin-top: 8px;
     }
 
     button {
       border: 0;
-      border-radius: 14px;
-      padding: 16px 20px;
-      font-size: 18px;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 15px;
       font-weight: 700;
       cursor: pointer;
       transition: opacity 0.15s ease;
@@ -111,7 +111,7 @@
     }
 
     .name-btn {
-      min-width: 170px;
+      min-width: 120px;
       background: #1d1d1d;
       color: #fff;
       border: 1px solid #444;
@@ -120,27 +120,27 @@
     .status-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 18px;
+      gap: 8px;
+      margin-top: 10px;
     }
 
     .status {
-      padding: 14px 16px;
+      padding: 10px 12px;
       border-radius: 14px;
       background: #181818;
       border: 1px solid #333;
       color: #ddd;
       line-height: 1.5;
-      min-height: 82px;
+      min-height: 68px;
     }
 
     .status b { color: #fff; display: block; margin-bottom: 6px; }
 
     .smallnote {
-      font-size: 14px;
+      font-size: 12px;
       color: #aaa;
-      margin-top: 10px;
-      line-height: 1.5;
+      margin-top: 8px;
+      line-height: 1.35;
     }
 
     .display {
@@ -181,30 +181,21 @@
     }
 
     @media (max-width: 768px) {
-      .title { font-size: 24px; }
-      textarea { font-size: 24px; min-height: 160px; }
-      .speech-box { font-size: 22px; min-height: 100px; }
-      button { width: 100%; }
+      textarea { font-size: 20px; min-height: 110px; }
+      .speech-box { font-size: 18px; min-height: 78px; }
       .topbar { justify-content: stretch; flex-wrap: wrap; }
       .topbar button { flex: 1 1 100%; }
       .status-grid { grid-template-columns: 1fr; }
-      .name-btn { min-width: 100%; }
+      .name-btn { min-width: calc(50% - 4px); }
+      .control { padding: 10px; }
+      .section-title { margin-top: 8px; margin-bottom: 5px; }
+      button { padding: 10px 12px; font-size: 14px; }
     }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <button class="secondary" id="btnControl" type="button">Abrir controle nesta aba</button>
-    <button class="secondary" id="btnDisplay" type="button">Abrir painel nesta aba</button>
-  </div>
-
   <section class="screen control" id="controlScreen">
     <div class="wrap">
-      <div class="title">Controle da loja</div>
-      <div class="subtitle">
-        Digite no celular e a TV atualiza. Sons e falas entram em fila e são executados um por vez no painel.
-      </div>
-
       <div class="section-title">Texto da tela</div>
       <textarea id="messageInput" placeholder="Digite aqui o texto que aparece na TV..."></textarea>
 
@@ -219,7 +210,6 @@
         <button class="primary" id="sendSpeechButton" type="button">FALAR TEXTO DIGITADO</button>
       </div>
 
-      <div class="section-title">Chamadas rápidas</div>
       <div class="name-buttons">
         <button class="name-btn action-btn" data-name="Nicolly" type="button">Nicolly</button>
         <button class="name-btn action-btn" data-name="Tibério" type="button">Tibério</button>
@@ -679,7 +669,6 @@
           return;
         }
         await handleSoundSend("audio_texto", text, "texto falado");
-        speechInput.value = "";
       });
 
       alertButton.addEventListener("click", async function () {
@@ -730,5 +719,11 @@
       }
     }
   </script>
+
+  <div class="topbar" style="position: static; margin-top: 10px; border-top: 1px solid #222; border-bottom: 0;">
+    <button class="secondary" id="btnControl" type="button">Abrir controle nesta aba</button>
+    <button class="secondary" id="btnDisplay" type="button">Abrir painel nesta aba</button>
+  </div>
+
 </body>
 </html>
