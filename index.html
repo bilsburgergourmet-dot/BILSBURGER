@@ -197,6 +197,25 @@
 <body>
   <section class="screen control" id="controlScreen">
     <div class="wrap">
+      <div class="status-grid">
+        <div class="status" style="grid-column: 1 / -1;">
+          <b>Câmera da loja</b>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+            <button class="primary" id="openCameraButton" type="button">VER CÂMERA</button>
+            <button class="secondary" id="closeCameraButton" type="button">FECHAR CÂMERA</button>
+            <button class="secondary" id="openCameraExternalButton" type="button">ABRIR EM TELA MAIOR</button>
+          </div>
+          <div id="cameraWrap" class="hidden" style="margin-top:10px;">
+            <iframe
+              id="cameraFrame"
+              title="Câmera da loja"
+              style="width:100%; height:230px; border:1px solid #333; border-radius:12px; background:#000;"
+              allow="autoplay; fullscreen"
+              referrerpolicy="no-referrer"
+            ></iframe>
+          </div>
+        </div>
+
       <div class="section-title">Texto da tela</div>
       <textarea id="messageInput" placeholder="Digite aqui o texto que aparece na TV..."></textarea>
 
@@ -225,24 +244,6 @@
         <div class="status" id="soundStatus"><b>Último som</b>Nenhum comando enviado ainda.</div>
         <div class="status" id="queueStatus"><b>Fila pendente</b>Consultando...</div>
       </div>
-      <div class="status-grid">
-        <div class="status" style="grid-column: 1 / -1;">
-          <b>Câmera da loja</b>
-          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-            <button class="primary" id="openCameraButton" type="button">VER CÂMERA</button>
-            <button class="secondary" id="closeCameraButton" type="button">FECHAR CÂMERA</button>
-            <button class="secondary" id="openCameraExternalButton" type="button">ABRIR EM TELA MAIOR</button>
-          </div>
-          <div id="cameraWrap" class="hidden" style="margin-top:10px;">
-            <iframe
-              id="cameraFrame"
-              title="Câmera da loja"
-              style="width:100%; height:260px; border:1px solid #333; border-radius:12px; background:#000;"
-              allow="autoplay; fullscreen"
-              referrerpolicy="no-referrer"
-            ></iframe>
-          </div>
-        </div>
       </div>
 
       <div class="topbar" style="position: static; margin-top: 10px; border-top: 1px solid #222; border-bottom: 0; padding: 10px 0 0 0; background: transparent;">
@@ -338,9 +339,10 @@
 
     function openCameraInline() {
       cameraWrap.classList.remove("hidden");
-      if (!cameraFrame.src) {
+      cameraFrame.src = "";
+      setTimeout(function () {
         cameraFrame.src = CAMERA_MSE_URL;
-      }
+      }, 50);
     }
 
     function closeCameraInline() {
