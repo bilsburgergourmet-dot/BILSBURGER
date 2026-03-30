@@ -190,31 +190,40 @@
       .control { padding: 10px; }
       .section-title { margin-top: 8px; margin-bottom: 5px; }
       button { padding: 10px 12px; font-size: 14px; }
-      #cameraFrame { height: 220px !important; }
+      #cameraVideo, #cameraImage { height: 210px !important; }
     }
   </style>
 </head>
 <body>
   <section class="screen control" id="controlScreen">
     <div class="wrap">
+
       <div class="status-grid">
         <div class="status" style="grid-column: 1 / -1;">
           <b>Câmera da loja</b>
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
             <button class="primary" id="openCameraButton" type="button">VER CÂMERA</button>
             <button class="secondary" id="closeCameraButton" type="button">FECHAR CÂMERA</button>
-            <button class="secondary" id="openCameraExternalButton" type="button">ABRIR EM TELA MAIOR</button>
           </div>
           <div id="cameraWrap" class="hidden" style="margin-top:10px;">
-            <iframe
-              id="cameraFrame"
-              title="Câmera da loja"
+            <video
+              id="cameraVideo"
+              playsinline
+              muted
+              autoplay
+              controls
               style="width:100%; height:230px; border:1px solid #333; border-radius:12px; background:#000;"
-              allow="autoplay; fullscreen"
-              referrerpolicy="no-referrer"
-            ></iframe>
+            ></video>
+            <img
+              id="cameraImage"
+              class="hidden"
+              alt="Câmera da loja"
+              style="width:100%; height:230px; object-fit:cover; border:1px solid #333; border-radius:12px; background:#000; margin-top:8px;"
+            />
+            <div class="smallnote" id="cameraNote" style="margin-top:8px;">A câmera tentará abrir no player interno. Se o vídeo não tocar, o sistema cai automaticamente para imagem ao vivo.</div>
           </div>
         </div>
+      </div>
 
       <div class="section-title">Texto da tela</div>
       <textarea id="messageInput" placeholder="Digite aqui o texto que aparece na TV..."></textarea>
@@ -244,7 +253,6 @@
         <div class="status" id="soundStatus"><b>Último som</b>Nenhum comando enviado ainda.</div>
         <div class="status" id="queueStatus"><b>Fila pendente</b>Consultando...</div>
       </div>
-      </div>
 
       <div class="topbar" style="position: static; margin-top: 10px; border-top: 1px solid #222; border-bottom: 0; padding: 10px 0 0 0; background: transparent;">
         <button class="secondary" id="btnControl" type="button">Abrir controle nesta aba</button>
@@ -271,7 +279,8 @@
     const CONTROL_POLL_MS = 1500;
     const DISPLAY_POLL_MS = 1000;
     const CLICK_GUARD_MS = 700;
-    const CAMERA_MSE_URL = "http://100.83.59.111:1984/stream.html?src=bilsburger&mode=mse";
+    const CAMERA_MP4_URL = "http://100.83.59.111:1984/api/stream.mp4?src=bilsburger";
+    const CAMERA_MJPEG_URL = "http://100.83.59.111:1984/api/stream.mjpeg?src=bilsburger";
 
     const controlScreen = document.getElementById("controlScreen");
     const displayScreen = document.getElementById("displayScreen");
@@ -291,9 +300,10 @@
     const btnDisplay = document.getElementById("btnDisplay");
     const openCameraButton = document.getElementById("openCameraButton");
     const closeCameraButton = document.getElementById("closeCameraButton");
-    const openCameraExternalButton = document.getElementById("openCameraExternalButton");
     const cameraWrap = document.getElementById("cameraWrap");
-    const cameraFrame = document.getElementById("cameraFrame");
+    const cameraVideo = document.getElementById("cameraVideo");
+    const cameraImage = document.getElementById("cameraImage");
+    const cameraNote = document.getElementById("cameraNote");
     const nameButtons = Array.from(document.querySelectorAll(".name-btn"));
     const actionButtons = Array.from(document.querySelectorAll(".action-btn")).concat([sendSpeechButton, clearButton]);
 
@@ -334,20 +344,59 @@
     btnDisplay.addEventListener("click", function () { setMode("display"); });
     openCameraButton.addEventListener("click", function () { guardButton(openCameraButton); openCameraInline(); });
     closeCameraButton.addEventListener("click", function () { closeCameraInline(); });
-    openCameraExternalButton.addEventListener("click", function () { window.open(CAMERA_MSE_URL, "_blank"); });
 
-
-    function openCameraInline() {
-      cameraWrap.classList.remove("hidden");
-      cameraFrame.src = "";
-      setTimeout(function () {
-        cameraFrame.src = CAMERA_MSE_URL;
-      }, 50);
-    }
 
     function closeCameraInline() {
       cameraWrap.classList.add("hidden");
-      cameraFrame.src = "";
+      cameraVideo.pause();
+      cameraVideo.removeAttribute("src");
+      cameraVideo.load();
+      cameraVideo.classList.remove("hidden");
+      cameraImage.classList.add("hidden");
+      cameraImage.removeAttribute("src");
+      cameraNote.textContent = "A câmera tentará abrir no player interno. Se o vídeo não tocar, o sistema cai automaticamente para imagem ao vivo.";
+    }
+
+    function openCameraInline() {
+      cameraWrap.classList.remove("hidden");
+      cameraImage.classList.add("hidden");
+      cameraImage.removeAttribute("src");
+      cameraVideo.classList.remove("hidden");
+      cameraVideo.pause();
+      cameraVideo.src = CAMERA_MP4_URL + "&t=" + Date.now();
+      cameraVideo.load();
+
+      let fallbackDone = false;
+
+      const useMjpegFallback = function () {
+        if (fallbackDone) return;
+        fallbackDone = true;
+        cameraVideo.pause();
+        cameraVideo.classList.add("hidden");
+        cameraImage.classList.remove("hidden");
+        cameraImage.src = CAMERA_MJPEG_URL + "&t=" + Date.now();
+        cameraNote.textContent = "O player em vídeo não respondeu. Mostrando imagem ao vivo da câmera dentro do site.";
+      };
+
+      const timeoutId = setTimeout(useMjpegFallback, 2500);
+
+      cameraVideo.onplaying = function () {
+        clearTimeout(timeoutId);
+        cameraNote.textContent = "Câmera aberta no player interno.";
+      };
+
+      cameraVideo.onerror = function () {
+        clearTimeout(timeoutId);
+        useMjpegFallback();
+      };
+
+      const playPromise = cameraVideo.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(function () {
+          clearTimeout(timeoutId);
+          useMjpegFallback();
+        });
+      }
     }
 
     function renderMode() {
