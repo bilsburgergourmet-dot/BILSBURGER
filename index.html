@@ -190,9 +190,17 @@
       .control { padding: 10px; }
       .section-title { margin-top: 8px; margin-bottom: 5px; }
       button { padding: 10px 12px; font-size: 14px; }
-      #cameraVideo, #cameraImage { height: 210px !important; }
+      #cameraPlayer { height: 210px !important; }
     }
   </style>
+
+  <script type="module">
+    import { VideoRTC } from "http://100.83.59.111:1984/video-rtc.js";
+    if (!customElements.get("video-rtc")) {
+      customElements.define("video-rtc", VideoRTC);
+    }
+  </script>
+
 </head>
 <body>
   <section class="screen control" id="controlScreen">
@@ -206,21 +214,10 @@
             <button class="secondary" id="closeCameraButton" type="button">FECHAR CÂMERA</button>
           </div>
           <div id="cameraWrap" class="hidden" style="margin-top:10px;">
-            <video
-              id="cameraVideo"
-              playsinline
-              muted
-              autoplay
-              controls
-              style="width:100%; height:230px; border:1px solid #333; border-radius:12px; background:#000;"
-            ></video>
-            <img
-              id="cameraImage"
-              class="hidden"
-              alt="Câmera da loja"
-              style="width:100%; height:230px; object-fit:cover; border:1px solid #333; border-radius:12px; background:#000; margin-top:8px;"
-            />
-            <div class="smallnote" id="cameraNote" style="margin-top:8px;">A câmera tentará abrir no player interno. Se o vídeo não tocar, o sistema cai automaticamente para imagem ao vivo.</div>
+            <video-rtc
+              id="cameraPlayer"
+              style="display:block; width:100%; height:230px; border:1px solid #333; border-radius:12px; background:#000;"
+            ></video-rtc>
           </div>
         </div>
       </div>
@@ -279,8 +276,7 @@
     const CONTROL_POLL_MS = 1500;
     const DISPLAY_POLL_MS = 1000;
     const CLICK_GUARD_MS = 700;
-    const CAMERA_MP4_URL = "http://100.83.59.111:1984/api/stream.mp4?src=bilsburger";
-    const CAMERA_MJPEG_URL = "http://100.83.59.111:1984/api/stream.mjpeg?src=bilsburger";
+    const CAMERA_WS_HTTP_URL = "http://100.83.59.111:1984/api/ws?src=bilsburger";
 
     const controlScreen = document.getElementById("controlScreen");
     const displayScreen = document.getElementById("displayScreen");
@@ -301,9 +297,7 @@
     const openCameraButton = document.getElementById("openCameraButton");
     const closeCameraButton = document.getElementById("closeCameraButton");
     const cameraWrap = document.getElementById("cameraWrap");
-    const cameraVideo = document.getElementById("cameraVideo");
-    const cameraImage = document.getElementById("cameraImage");
-    const cameraNote = document.getElementById("cameraNote");
+    const cameraPlayer = document.getElementById("cameraPlayer");
     const nameButtons = Array.from(document.querySelectorAll(".name-btn"));
     const actionButtons = Array.from(document.querySelectorAll(".action-btn")).concat([sendSpeechButton, clearButton]);
 
@@ -346,57 +340,17 @@
     closeCameraButton.addEventListener("click", function () { closeCameraInline(); });
 
 
-    function closeCameraInline() {
-      cameraWrap.classList.add("hidden");
-      cameraVideo.pause();
-      cameraVideo.removeAttribute("src");
-      cameraVideo.load();
-      cameraVideo.classList.remove("hidden");
-      cameraImage.classList.add("hidden");
-      cameraImage.removeAttribute("src");
-      cameraNote.textContent = "A câmera tentará abrir no player interno. Se o vídeo não tocar, o sistema cai automaticamente para imagem ao vivo.";
-    }
-
     function openCameraInline() {
       cameraWrap.classList.remove("hidden");
-      cameraImage.classList.add("hidden");
-      cameraImage.removeAttribute("src");
-      cameraVideo.classList.remove("hidden");
-      cameraVideo.pause();
-      cameraVideo.src = CAMERA_MP4_URL + "&t=" + Date.now();
-      cameraVideo.load();
+      cameraPlayer.mode = "webrtc,mse,hls,mjpeg";
+      cameraPlayer.media = "video";
+      cameraPlayer.background = true;
+      cameraPlayer.src = CAMERA_WS_HTTP_URL;
+    }
 
-      let fallbackDone = false;
-
-      const useMjpegFallback = function () {
-        if (fallbackDone) return;
-        fallbackDone = true;
-        cameraVideo.pause();
-        cameraVideo.classList.add("hidden");
-        cameraImage.classList.remove("hidden");
-        cameraImage.src = CAMERA_MJPEG_URL + "&t=" + Date.now();
-        cameraNote.textContent = "O player em vídeo não respondeu. Mostrando imagem ao vivo da câmera dentro do site.";
-      };
-
-      const timeoutId = setTimeout(useMjpegFallback, 2500);
-
-      cameraVideo.onplaying = function () {
-        clearTimeout(timeoutId);
-        cameraNote.textContent = "Câmera aberta no player interno.";
-      };
-
-      cameraVideo.onerror = function () {
-        clearTimeout(timeoutId);
-        useMjpegFallback();
-      };
-
-      const playPromise = cameraVideo.play();
-      if (playPromise && typeof playPromise.catch === "function") {
-        playPromise.catch(function () {
-          clearTimeout(timeoutId);
-          useMjpegFallback();
-        });
-      }
+    function closeCameraInline() {
+      cameraWrap.classList.add("hidden");
+      cameraPlayer.src = "";
     }
 
     function renderMode() {
