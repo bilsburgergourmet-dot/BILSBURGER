@@ -190,12 +190,11 @@
       overflow: hidden;
     }
 
-    .camera-image {
+    .camera-frame {
       display: block;
       width: 100%;
       height: 100%;
       background: #000;
-      object-fit: cover;
       border: 0;
     }
 
@@ -228,16 +227,18 @@
         <div class="status" style="grid-column: 1 / -1;">
           <b>Câmera da loja</b>
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-            <button class="primary" id="openCameraButton" type="button">ABBRIR CÂMERA</button>
+            <button class="primary" id="openCameraButton" type="button">ABiRIR CÂMERA</button>
             <button class="secondary" id="closeCameraButton" type="button">FECHAR CÂMERA</button>
           </div>
           <div id="cameraWrap" class="hidden" style="margin-top:10px;">
             <div class="camera-stage">
-              <img
-                id="cameraImage"
-                class="camera-image"
-                alt="Câmera ao vivo"
-              />
+              <iframe
+                id="cameraFrame"
+                class="camera-frame"
+                title="Câmera ao vivo"
+                allow="autoplay; fullscreen"
+                referrerpolicy="no-referrer"
+              ></iframe>
             </div>
             <div class="camera-note" id="cameraNote">Câmera fechada.</div>
           </div>
@@ -301,7 +302,6 @@
 
     const GO2RTC_BASE_URL = "http://100.83.59.111:1984";
     const CAMERA_SRC_NAME = "bilsburger";
-    const CAMERA_FRAME_INTERVAL_MS = 1000;
 
     const controlScreen = document.getElementById("controlScreen");
     const displayScreen = document.getElementById("displayScreen");
@@ -322,11 +322,9 @@
     const openCameraButton = document.getElementById("openCameraButton");
     const closeCameraButton = document.getElementById("closeCameraButton");
     const cameraWrap = document.getElementById("cameraWrap");
-    const cameraImage = document.getElementById("cameraImage");
+    const cameraFrame = document.getElementById("cameraFrame");
     const cameraNote = document.getElementById("cameraNote");
     const nameButtons = Array.from(document.querySelectorAll(".name-btn"));
-
-    let cameraFrameTimer = null;
 
     function getModeFromUrl() {
       const params = new URLSearchParams(window.location.search);
@@ -346,33 +344,16 @@
       return GO2RTC_BASE_URL.replace(/\/+$/, "") + path;
     }
 
-    function refreshCameraFrame() {
-      cameraImage.src = buildGo2rtcUrl("/api/frame.jpeg?src=" + encodeURIComponent(CAMERA_SRC_NAME) + "&_t=" + Date.now());
-    }
-
-    function stopCamera() {
-      if (cameraFrameTimer) {
-        clearInterval(cameraFrameTimer);
-        cameraFrameTimer = null;
-      }
-      cameraImage.src = "";
-      cameraNote.textContent = "Câmera fechada.";
-    }
-
     function openCameraInline() {
       cameraWrap.classList.remove("hidden");
-      cameraNote.textContent = "Mostrando imagem ao vivo da câmera dentro do site.";
-      refreshCameraFrame();
-
-      if (cameraFrameTimer) {
-        clearInterval(cameraFrameTimer);
-      }
-      cameraFrameTimer = setInterval(refreshCameraFrame, CAMERA_FRAME_INTERVAL_MS);
+      cameraFrame.src = buildGo2rtcUrl("/stream.html?src=" + encodeURIComponent(CAMERA_SRC_NAME));
+      cameraNote.textContent = "Abrindo câmera ao vivo dentro do site.";
     }
 
     function closeCameraInline() {
       cameraWrap.classList.add("hidden");
-      stopCamera();
+      cameraFrame.src = "about:blank";
+      cameraNote.textContent = "Câmera fechada.";
     }
 
     function setMode(nextMode) {
