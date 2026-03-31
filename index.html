@@ -190,19 +190,13 @@
       overflow: hidden;
     }
 
-    .camera-video,
-    .camera-fallback {
+    .camera-image {
       display: block;
       width: 100%;
       height: 100%;
       background: #000;
       object-fit: cover;
       border: 0;
-    }
-
-    .camera-fallback.hidden,
-    .camera-video.hidden {
-      display: none !important;
     }
 
     .camera-note {
@@ -234,28 +228,18 @@
         <div class="status" style="grid-column: 1 / -1;">
           <b>Câmera da loja</b>
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-            <button class="primary" id="openCameraButton" type="button">ABRIR CÂMERA</button>
+            <button class="primary" id="openCameraButton" type="button">ABBRIR CÂMERA</button>
             <button class="secondary" id="closeCameraButton" type="button">FECHAR CÂMERA</button>
           </div>
           <div id="cameraWrap" class="hidden" style="margin-top:10px;">
             <div class="camera-stage">
-              <video
-                id="cameraPlayer"
-                class="camera-video"
-                autoplay
-                muted
-                playsinline
-                controls
-                preload="auto"
-              ></video>
-
               <img
-                id="cameraFallback"
-                class="camera-fallback hidden"
+                id="cameraImage"
+                class="camera-image"
                 alt="Câmera ao vivo"
               />
             </div>
-            <div class="camera-note" id="cameraNote">Tentando abrir vídeo ao vivo...</div>
+            <div class="camera-note" id="cameraNote">Câmera fechada.</div>
           </div>
         </div>
       </div>
@@ -338,15 +322,11 @@
     const openCameraButton = document.getElementById("openCameraButton");
     const closeCameraButton = document.getElementById("closeCameraButton");
     const cameraWrap = document.getElementById("cameraWrap");
-    const cameraPlayer = document.getElementById("cameraPlayer");
-    const cameraFallback = document.getElementById("cameraFallback");
+    const cameraImage = document.getElementById("cameraImage");
     const cameraNote = document.getElementById("cameraNote");
     const nameButtons = Array.from(document.querySelectorAll(".name-btn"));
-    const actionButtons = Array.from(document.querySelectorAll(".action-btn")).concat([sendSpeechButton, clearButton]);
 
-    let cameraPc = null;
     let cameraFrameTimer = null;
-    let cameraOpenToken = 0;
 
     function getModeFromUrl() {
       const params = new URLSearchParams(window.location.search);
@@ -366,125 +346,33 @@
       return GO2RTC_BASE_URL.replace(/\/+$/, "") + path;
     }
 
-    function showCameraVideo() {
-      cameraPlayer.classList.remove("hidden");
-      cameraFallback.classList.add("hidden");
+    function refreshCameraFrame() {
+      cameraImage.src = buildGo2rtcUrl("/api/frame.jpeg?src=" + encodeURIComponent(CAMERA_SRC_NAME) + "&_t=" + Date.now());
     }
 
-    function showCameraFallback() {
-      cameraFallback.classList.remove("hidden");
-      cameraPlayer.classList.add("hidden");
-    }
-
-    function stopCameraFrameRefresh() {
+    function stopCamera() {
       if (cameraFrameTimer) {
         clearInterval(cameraFrameTimer);
         cameraFrameTimer = null;
       }
+      cameraImage.src = "";
+      cameraNote.textContent = "Câmera fechada.";
     }
 
-    function stopCameraPeer() {
-      try {
-        if (cameraPlayer.srcObject) {
-          const tracks = cameraPlayer.srcObject.getTracks();
-          tracks.forEach(function (track) { track.stop(); });
-        }
-      } catch (e) {
-        console.error(e);
-      }
-
-      cameraPlayer.srcObject = null;
-
-      if (cameraPc) {
-        try { cameraPc.ontrack = null; } catch (e) {}
-        try { cameraPc.close(); } catch (e) {}
-        cameraPc = null;
-      }
-    }
-
-    function refreshCameraFrame() {
-      cameraFallback.src = buildGo2rtcUrl("/api/frame.jpeg?src=" + encodeURIComponent(CAMERA_SRC_NAME) + "&_t=" + Date.now());
-    }
-
-    async function startCameraFallback(reason) {
-      stopCameraPeer();
-      stopCameraFrameRefresh();
-      showCameraFallback();
-      refreshCameraFrame();
-      cameraFrameTimer = setInterval(refreshCameraFrame, CAMERA_FRAME_INTERVAL_MS);
-      cameraNote.textContent = reason || "Mostrando imagem ao vivo da câmera.";
-    }
-
-    async function startCameraWebRTC(openToken) {
-      const pc = new RTCPeerConnection({
-        iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }]
-      });
-
-      cameraPc = pc;
-
-      pc.ontrack = function (event) {
-        if (openToken !== cameraOpenToken) return;
-        cameraPlayer.srcObject = event.streams[0];
-        showCameraVideo();
-        cameraNote.textContent = "Vídeo ao vivo conectado.";
-      };
-
-      const offerResponse = await fetch(buildGo2rtcUrl("/api/webrtc?src=" + encodeURIComponent(CAMERA_SRC_NAME)), {
-        method: "POST"
-      });
-
-      if (!offerResponse.ok) {
-        throw new Error("Falha ao buscar oferta WebRTC.");
-      }
-
-      const offer = await offerResponse.text();
-
-      await pc.setRemoteDescription({
-        type: "offer",
-        sdp: offer
-      });
-
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-
-      const answerResponse = await fetch(buildGo2rtcUrl("/api/webrtc?src=" + encodeURIComponent(CAMERA_SRC_NAME)), {
-        method: "PATCH",
-        headers: { "Content-Type": "application/sdp" },
-        body: answer.sdp
-      });
-
-      if (!answerResponse.ok) {
-        throw new Error("Falha ao enviar resposta WebRTC.");
-      }
-
-      await cameraPlayer.play().catch(function () {});
-    }
-
-    async function openCameraInline() {
-      cameraOpenToken += 1;
-      const openToken = cameraOpenToken;
-
+    function openCameraInline() {
       cameraWrap.classList.remove("hidden");
-      cameraNote.textContent = "Tentando abrir vídeo ao vivo...";
-      showCameraVideo();
-      stopCameraFrameRefresh();
-      stopCameraPeer();
+      cameraNote.textContent = "Mostrando imagem ao vivo da câmera dentro do site.";
+      refreshCameraFrame();
 
-      try {
-        await startCameraWebRTC(openToken);
-      } catch (error) {
-        console.error("Erro no WebRTC:", error);
-        await startCameraFallback("O player em vídeo não respondeu. Mostrando imagem ao vivo da câmera dentro do site.");
+      if (cameraFrameTimer) {
+        clearInterval(cameraFrameTimer);
       }
+      cameraFrameTimer = setInterval(refreshCameraFrame, CAMERA_FRAME_INTERVAL_MS);
     }
 
     function closeCameraInline() {
-      cameraOpenToken += 1;
       cameraWrap.classList.add("hidden");
-      stopCameraFrameRefresh();
-      stopCameraPeer();
-      cameraFallback.src = "";
-      cameraNote.textContent = "Câmera fechada.";
+      stopCamera();
     }
 
     function setMode(nextMode) {
